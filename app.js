@@ -101,9 +101,12 @@ function simpleHash(str) {
 }
 
 function formatDate(dateStr) {
+    if (!dateStr) return 'n/a';
     const date = new Date(dateStr);
     const now = new Date();
     const diff = now - date;
+
+    if (isNaN(date.getTime())) return 'n/a';
 
     if (diff < 60000) return 'hace un momento';
     if (diff < 3600000) return `hace ${Math.floor(diff / 60000)} min`;
@@ -195,6 +198,8 @@ async function triggerKeywordResearch(keyword, language, location) {
             })
         });
 
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
         const data = await response.json();
         return { success: true, data };
     } catch (error) {
@@ -219,6 +224,8 @@ async function triggerSEOGenerator(keyword, language) {
             })
         });
 
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
         const data = await response.json();
         return { success: true, data };
     } catch (error) {
@@ -231,6 +238,8 @@ async function scheduleGeneration(keyword, language, location, scheduledDate) {
     const url = CONFIG.API_BASE + CONFIG.ENDPOINTS.SCHEDULE;
 
     try {
+        const isoDate = new Date(scheduledDate).toISOString();
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -240,42 +249,51 @@ async function scheduleGeneration(keyword, language, location, scheduledDate) {
                 keyword: keyword,
                 language: language,
                 location: location,
-                scheduled_at: scheduledDate
+                scheduled_at: isoDate
             })
         });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `HTTP ${response.status}`);
+        }
 
         const data = await response.json();
         return { success: true, data };
     } catch (error) {
         console.error('API Error:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: 'Workflow inactivo o error de red.' };
     }
 }
 
 async function fetchHistory() {
-    // For now, return mock data until the history endpoint is created
-    // TODO: Replace with actual API call when endpoint is ready
+    const url = CONFIG.API_BASE + CONFIG.ENDPOINTS.HISTORY;
 
-    const mockHistory = [
-        { keyword: 'marketing digital', quality: 100, date: new Date(Date.now() - 2 * 3600000).toISOString(), status: 'success' },
-        { keyword: 'seo local negocios', quality: 100, date: new Date(Date.now() - 4 * 3600000).toISOString(), status: 'success' },
-        { keyword: 'email marketing pymes', quality: 100, date: new Date(Date.now() - 6 * 3600000).toISOString(), status: 'success' },
-        { keyword: 'contenido seo', quality: 100, date: new Date(Date.now() - 8 * 3600000).toISOString(), status: 'success' }
-    ];
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return [];
 
-    return mockHistory;
+        const data = await response.json();
+        return Array.isArray(data) ? data : (data.json || []);
+    } catch (error) {
+        console.error('History API Error:', error);
+        return [];
+    }
 }
 
 async function fetchMetrics() {
-    // For now, return mock data until the metrics endpoint is created
-    // TODO: Replace with actual API call when endpoint is ready
+    const url = CONFIG.API_BASE + CONFIG.ENDPOINTS.METRICS;
 
-    return {
-        articles: 15,
-        keywords: 42,
-        quality: 98,
-        words: '12.5k'
-    };
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return { articles: 0, keywords: 0, quality: 0, words: '0' };
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Metrics API Error:', error);
+        return { articles: 0, keywords: 0, quality: 0, words: '0' };
+    }
 }
 
 // ========================================
@@ -283,15 +301,15 @@ async function fetchMetrics() {
 // ========================================
 
 function updateMetrics(metrics) {
-    elements.metricArticles.textContent = metrics.articles;
-    elements.metricKeywords.textContent = metrics.keywords;
-    elements.metricQuality.textContent = metrics.quality;
-    elements.metricWords.textContent = metrics.words;
+    elements.metricArticles.textContent = metrics.articles || 0;
+    elements.metricKeywords.textContent = metrics.keywords || 0;
+    elements.metricQuality.textContent = metrics.quality || 0;
+    elements.metricWords.textContent = metrics.words || '0';
 }
 
 function updateHistory(history) {
-    if (history.length === 0) {
-        elements.historyList.innerHTML = '<div class="history-loading">No hay historial disponible</div>';
+    if (!history || history.length === 0) {
+        elements.historyList.innerHTML = '<div class="history-loading">No hay historial disponible recientemente</div>';
         return;
     }
 
@@ -341,7 +359,6 @@ function handleExecutionChange() {
     const selectedValue = document.querySelector('input[name="execution"]:checked').value;
     elements.scheduleOptions.classList.toggle('hidden', selectedValue !== 'schedule');
 
-    // Set minimum date to now
     if (selectedValue === 'schedule') {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -367,30 +384,22 @@ async function handleGenerate(e) {
     if (execution === 'now') {
         showStatus('⏳ Iniciando investigación de keywords...', 'loading');
 
-        // Trigger keyword research (which will automatically trigger SEO generator)
         const result = await triggerKeywordResearch(keyword, language, location);
 
         if (result.success) {
             showStatus(`
                 ✅ <strong>¡Proceso iniciado!</strong><br>
-                <small>La investigación de keywords y generación de contenido está en curso.<br>
-                Recibirás un email cuando el artículo esté listo (~3-4 min).</small>
+                <small>La investigación y generación está en curso. <br>
+                Recibirás un email pronto.</small>
             `, 'success');
 
-            // Clear form
             elements.keywordInput.value = '';
-
-            // Refresh history after a delay
-            setTimeout(() => {
-                fetchHistory().then(updateHistory);
-            }, 5000);
+            setTimeout(initDashboard, 5000);
         } else {
             showStatus(`❌ Error: ${result.error}`, 'error');
         }
     } else {
-        // Schedule for later
         const scheduledDate = elements.scheduleDateInput.value;
-
         if (!scheduledDate) {
             showStatus('⚠️ Por favor, selecciona fecha y hora', 'error');
             setFormLoading(false);
@@ -398,18 +407,19 @@ async function handleGenerate(e) {
         }
 
         showStatus('⏳ Programando generación...', 'loading');
-
         const result = await scheduleGeneration(keyword, language, location, scheduledDate);
 
         if (result.success) {
             const date = new Date(scheduledDate);
             showStatus(`
                 ✅ <strong>¡Programado correctamente!</strong><br>
-                <small>Se ejecutará el ${date.toLocaleDateString('es-ES')} a las ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</small>
+                <small>Se ejecutará el ${date.toLocaleDateString('es-ES')} a las ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}. <br>
+                Asegúrate de que el flujo esté activo en n8n.</small>
             `, 'success');
 
             elements.keywordInput.value = '';
             elements.scheduleDateInput.value = '';
+            setTimeout(initDashboard, 2000);
         } else {
             showStatus(`❌ Error: ${result.error}`, 'error');
         }
@@ -423,17 +433,14 @@ async function handleGenerate(e) {
 // ========================================
 
 async function initDashboard() {
-    // Load metrics
     const metrics = await fetchMetrics();
     updateMetrics(metrics);
 
-    // Load history
     const history = await fetchHistory();
     updateHistory(history);
 }
 
 function init() {
-    // Check if already logged in
     if (checkAuth()) {
         elements.userDisplay.textContent = `👤 ${state.user}`;
         showScreen('dashboard-screen');
@@ -442,7 +449,6 @@ function init() {
         showScreen('login-screen');
     }
 
-    // Event Listeners
     elements.loginForm.addEventListener('submit', handleLogin);
     elements.logoutBtn.addEventListener('click', logout);
     elements.generatorForm.addEventListener('submit', handleGenerate);
@@ -451,23 +457,20 @@ function init() {
         radio.addEventListener('change', handleExecutionChange);
     });
 
-    // Update location options based on language
     elements.languageSelect.addEventListener('change', (e) => {
         const lang = e.target.value;
         const locationSelect = elements.locationSelect;
-
-        // Show relevant locations based on language
         locationSelect.querySelectorAll('optgroup').forEach(group => {
             const isRelevant = (lang === 'es' && group.label === 'Español') ||
                 (lang === 'en' && group.label === 'English');
             group.style.display = isRelevant ? 'block' : 'none';
         });
-
-        // Select first option of relevant group
         const firstOption = locationSelect.querySelector(`optgroup[label="${lang === 'es' ? 'Español' : 'English'}"] option`);
         if (firstOption) locationSelect.value = firstOption.value;
     });
+
+    // Auto refresh every 30s
+    setInterval(initDashboard, 30000);
 }
 
-// Start the app
 document.addEventListener('DOMContentLoaded', init);
