@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Content Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="login-card glass">
+                <div class="logo">
+                    <span class="logo-icon">🚀</span>
+                    <h1>SEO Dashboard</h1>
+                </div>
+                <p class="subtitle">Content Generation System</p>
+                
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Recordarme</label>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <span>Iniciar Sesión</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+                <p id="login-error" class="error-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="screen">
+        <nav class="navbar glass">
+            <div class="nav-brand">
+                <span class="logo-icon">🚀</span>
+                <span>SEO Dashboard</span>
+            </div>
+            <div class="nav-actions">
+                <span id="user-display" class="user-badge">👤 Usuario</span>
+                <button id="logout-btn" class="btn-ghost">Cerrar Sesión</button>
+            </div>
+        </nav>
+
+        <main class="dashboard-content">
+            <!-- Metrics Section -->
+            <section class="metrics-section">
+                <h2 class="section-title">📊 Métricas</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card glass">
+                        <span class="metric-value" id="metric-articles">--</span>
+                        <span class="metric-label">Artículos</span>
+                    </div>
+                    <div class="metric-card glass">
+                        <span class="metric-value" id="metric-keywords">--</span>
+                        <span class="metric-label">Keywords</span>
+                    </div>
+                    <div class="metric-card glass">
+                        <span class="metric-value" id="metric-quality">--</span>
+                        <span class="metric-label">Quality Avg</span>
+                    </div>
+                    <div class="metric-card glass">
+                        <span class="metric-value" id="metric-words">--</span>
+                        <span class="metric-label">Palabras</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Generator Section -->
+            <section class="generator-section">
+                <h2 class="section-title">✨ Nueva Generación</h2>
+                <div class="generator-card glass">
+                    <form id="generator-form">
+                        <div class="form-row">
+                            <div class="input-group flex-2">
+                                <label for="keyword">Keyword Principal</label>
+                                <input type="text" id="keyword" placeholder="ej: marketing digital, seo local..." required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="language">Idioma</label>
+                                <select id="language">
+                                    <option value="es">🇪🇸 Español</option>
+                                    <option value="en">🇺🇸 English</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="location">Ubicación</label>
+                                <select id="location">
+                                    <optgroup label="Español">
+                                        <option value="ES">España</option>
+                                        <option value="MX">México</option>
+                                        <option value="AR">Argentina</option>
+                                        <option value="CO">Colombia</option>
+                                    </optgroup>
+                                    <optgroup label="English">
+                                        <option value="US">United States</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="AU">Australia</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="execution" value="now" checked>
+                                    <span class="radio-custom"></span>
+                                    <span>Ejecutar ahora</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="execution" value="schedule">
+                                    <span class="radio-custom"></span>
+                                    <span>Programar</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="schedule-options" class="schedule-options hidden">
+                            <div class="input-group">
+                                <label for="schedule-date">Fecha y Hora</label>
+                                <input type="datetime-local" id="schedule-date">
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary btn-large">
+                                <span id="submit-text">🚀 Generar Contenido SEO</span>
+                                <span id="submit-loading" class="hidden">⏳ Procesando...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Status Message -->
+                <div id="status-message" class="status-message hidden">
+                    <div class="status-content glass"></div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section class="history-section">
+                <h2 class="section-title">📜 Historial Reciente</h2>
+                <div class="history-card glass">
+                    <div id="history-list" class="history-list">
+                        <div class="history-loading">Cargando historial...</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>SEO Content Dashboard v1.0 • Powered by n8n + DeepSeek AI</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
