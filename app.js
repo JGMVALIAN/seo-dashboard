@@ -716,7 +716,39 @@ function init() {
         }
     });
 
-    setInterval(initDashboard, CONFIG.REFRESH_INTERVAL);
+    // NOTA: Polling automático desactivado temporalmente por problemas de CORS
+    // Para reactivar cuando CORS esté configurado en n8n:
+    // setInterval(initDashboard, CONFIG.REFRESH_INTERVAL);
+}
+
+// ========================================
+// Función de Actualización Manual
+// ========================================
+
+async function manualRefresh() {
+    const btn = document.getElementById('refresh-dashboard-btn');
+    const originalText = btn.innerHTML;
+    
+    // Mostrar estado de carga
+    btn.innerHTML = `
+        <span class="material-symbols-outlined text-[20px] animate-spin">refresh</span>
+        <span>Actualizando...</span>
+    `;
+    btn.disabled = true;
+    
+    showNotification('Actualizando datos manualmente...', 'info', 2000);
+    
+    try {
+        await initDashboard();
+        showNotification('Datos actualizados correctamente', 'success');
+    } catch (error) {
+        console.error('Error en actualización manual:', error);
+        showNotification('Error al actualizar. Verifica la conexión con n8n.', 'error', 5000);
+    } finally {
+        // Restaurar botón
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', init);
