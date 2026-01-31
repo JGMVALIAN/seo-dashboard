@@ -716,9 +716,8 @@ function init() {
         }
     });
 
-    // NOTA: Polling automático desactivado temporalmente por problemas de CORS
-    // Para reactivar cuando CORS esté configurado en n8n:
-    // setInterval(initDashboard, CONFIG.REFRESH_INTERVAL);
+    // Polling automático activado - CORS configurado en n8n
+    setInterval(initDashboard, CONFIG.REFRESH_INTERVAL);
 }
 
 // ========================================
