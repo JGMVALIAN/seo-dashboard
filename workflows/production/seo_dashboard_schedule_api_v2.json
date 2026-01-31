@@ -1,0 +1,435 @@
+﻿{
+    "updatedAt":  "2026-01-30T20:50:44.763Z",
+    "createdAt":  "2026-01-30T20:50:44.763Z",
+    "id":  "P4YTQLMkgJzu5Hny",
+    "name":  "SEO Dashboard - Schedule API v2",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "id":  "webhook-schedule",
+                      "name":  "Schedule Webhook",
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "options":  {
+                                                         "allowedOrigins":  "*"
+                                                     },
+                                         "path":  "seo-schedule",
+                                         "responseMode":  "onReceived"
+                                     },
+                      "position":  [
+                                       100,
+                                       200
+                                   ],
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2
+                  },
+                  {
+                      "id":  "calc-delay",
+                      "name":  "Calculate Delay",
+                      "parameters":  {
+                                         "jsCode":  "const input = $input.first().json;\nreturn [{\n  json: {\n    seed_keywords: [input.keyword],\n    language: input.language || \u0027es\u0027,\n    location: input.location || \u0027ES\u0027,\n    ...input\n  }\n}];"
+                                     },
+                      "position":  [
+                                       300,
+                                       200
+                                   ],
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2
+                  },
+                  {
+                      "id":  "wait-schedule",
+                      "name":  "Wait for Schedule",
+                      "parameters":  {
+                                         "dateTime":  "={{ $json.scheduled_at }}",
+                                         "resume":  "specificTime"
+                                     },
+                      "position":  [
+                                       500,
+                                       200
+                                   ],
+                      "type":  "n8n-nodes-base.wait",
+                      "typeVersion":  1
+                  },
+                  {
+                      "id":  "trigger-process",
+                      "name":  "Trigger Process",
+                      "parameters":  {
+                                         "jsonParameters":  true,
+                                         "method":  "POST",
+                                         "options":  {
+
+                                                     },
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "url":  "https://n8n.larryvanscamper.com/webhook/testkw"
+                                     },
+                      "position":  [
+                                       700,
+                                       200
+                                   ],
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.1
+                  },
+                  {
+                      "id":  "webhook-options",
+                      "name":  "Options Webhook",
+                      "parameters":  {
+                                         "httpMethod":  "OPTIONS",
+                                         "options":  {
+                                                         "allowedOrigins":  "*"
+                                                     },
+                                         "path":  "seo-schedule",
+                                         "responseMode":  "responseNode"
+                                     },
+                      "position":  [
+                                       100,
+                                       400
+                                   ],
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2
+                  },
+                  {
+                      "id":  "respond-options",
+                      "name":  "Respond to Options",
+                      "parameters":  {
+                                         "options":  {
+                                                         "responseHeaders":  {
+                                                                                 "entries":  [
+                                                                                                 {
+                                                                                                     "name":  "Access-Control-Allow-Origin",
+                                                                                                     "value":  "*"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "name":  "Access-Control-Allow-Methods",
+                                                                                                     "value":  "POST, OPTIONS"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "name":  "Access-Control-Allow-Headers",
+                                                                                                     "value":  "Content-Type, Authorization, X-Requested-With, Origin, Accept"
+                                                                                                 },
+                                                                                                 {
+                                                                                                     "name":  "Access-Control-Max-Age",
+                                                                                                     "value":  "86400"
+                                                                                                 }
+                                                                                             ]
+                                                                             }
+                                                     },
+                                         "respondWith":  "text",
+                                         "responseBody":  "OK"
+                                     },
+                      "position":  [
+                                       300,
+                                       400
+                                   ],
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1
+                  }
+              ],
+    "connections":  {
+                        "Calculate Delay":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "index":  0,
+                                                                     "node":  "Wait for Schedule",
+                                                                     "type":  "main"
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Options Webhook":  {
+                                                "main":  [
+                                                             [
+                                                                 {
+                                                                     "index":  0,
+                                                                     "node":  "Respond to Options",
+                                                                     "type":  "main"
+                                                                 }
+                                                             ]
+                                                         ]
+                                            },
+                        "Schedule Webhook":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "index":  0,
+                                                                      "node":  "Calculate Delay",
+                                                                      "type":  "main"
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Wait for Schedule":  {
+                                                  "main":  [
+                                                               [
+                                                                   {
+                                                                       "index":  0,
+                                                                       "node":  "Trigger Process",
+                                                                       "type":  "main"
+                                                                   }
+                                                               ]
+                                                           ]
+                                              }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "saveDataErrorExecution":  "all",
+                     "saveDataSuccessExecution":  "all",
+                     "saveManualExecutions":  true,
+                     "saveExecutionProgress":  true,
+                     "callerPolicy":  "workflowsFromSameOwner",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  null,
+    "pinData":  null,
+    "versionId":  "a9da9378-d42c-400b-ad64-f06f75c962ca",
+    "activeVersionId":  "a9da9378-d42c-400b-ad64-f06f75c962ca",
+    "versionCounter":  3,
+    "triggerCount":  2,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-01-30T20:50:44.836Z",
+                       "createdAt":  "2026-01-30T20:50:44.836Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "P4YTQLMkgJzu5Hny",
+                       "projectId":  "VFNLZG86dWLIX5E4",
+                       "project":  {
+                                       "updatedAt":  "2026-01-28T17:00:09.679Z",
+                                       "createdAt":  "2026-01-04T16:20:46.534Z",
+                                       "id":  "VFNLZG86dWLIX5E4",
+                                       "name":  "Jesús Matallanos \u003cmatallanos4@hotmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                       "projectRelations":  [
+                                                                {
+                                                                    "updatedAt":  "2026-01-04T16:20:46.535Z",
+                                                                    "createdAt":  "2026-01-04T16:20:46.535Z",
+                                                                    "userId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                                                    "projectId":  "VFNLZG86dWLIX5E4",
+                                                                    "user":  {
+                                                                                 "updatedAt":  "2026-01-30T20:48:44.000Z",
+                                                                                 "createdAt":  "2026-01-04T16:20:46.169Z",
+                                                                                 "id":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                                                                 "email":  "matallanos4@hotmail.com",
+                                                                                 "firstName":  "Jesús",
+                                                                                 "lastName":  "Matallanos",
+                                                                                 "personalizationAnswers":  {
+                                                                                                                "version":  "v4",
+                                                                                                                "personalization_survey_submitted_at":  "2026-01-28T17:00:21.007Z",
+                                                                                                                "personalization_survey_n8n_version":  "2.1.4",
+                                                                                                                "companySize":  "personalUser",
+                                                                                                                "companyType":  "saas",
+                                                                                                                "role":  "business-owner",
+                                                                                                                "reportedSource":  "google"
+                                                                                                            },
+                                                                                 "settings":  {
+                                                                                                  "userActivated":  true,
+                                                                                                  "firstSuccessfulWorkflowId":  "q0JKV3RdQOVM6NMY",
+                                                                                                  "userActivatedAt":  1769644414181
+                                                                                              },
+                                                                                 "disabled":  false,
+                                                                                 "mfaEnabled":  false,
+                                                                                 "lastActiveAt":  "2026-01-30",
+                                                                                 "isPending":  false
+                                                                             }
+                                                                }
+                                                            ]
+                                   }
+                   }
+               ],
+    "tags":  [
+
+             ],
+    "activeVersion":  {
+                          "updatedAt":  "2026-01-30T20:57:57.000Z",
+                          "createdAt":  "2026-01-30T20:50:44.863Z",
+                          "versionId":  "a9da9378-d42c-400b-ad64-f06f75c962ca",
+                          "workflowId":  "P4YTQLMkgJzu5Hny",
+                          "nodes":  [
+                                        {
+                                            "id":  "webhook-schedule",
+                                            "name":  "Schedule Webhook",
+                                            "parameters":  {
+                                                               "httpMethod":  "POST",
+                                                               "options":  {
+                                                                               "allowedOrigins":  "*"
+                                                                           },
+                                                               "path":  "seo-schedule",
+                                                               "responseMode":  "onReceived"
+                                                           },
+                                            "position":  [
+                                                             100,
+                                                             200
+                                                         ],
+                                            "type":  "n8n-nodes-base.webhook",
+                                            "typeVersion":  2
+                                        },
+                                        {
+                                            "id":  "calc-delay",
+                                            "name":  "Calculate Delay",
+                                            "parameters":  {
+                                                               "jsCode":  "const input = $input.first().json;\nreturn [{\n  json: {\n    seed_keywords: [input.keyword],\n    language: input.language || \u0027es\u0027,\n    location: input.location || \u0027ES\u0027,\n    ...input\n  }\n}];"
+                                                           },
+                                            "position":  [
+                                                             300,
+                                                             200
+                                                         ],
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2
+                                        },
+                                        {
+                                            "id":  "wait-schedule",
+                                            "name":  "Wait for Schedule",
+                                            "parameters":  {
+                                                               "dateTime":  "={{ $json.scheduled_at }}",
+                                                               "resume":  "specificTime"
+                                                           },
+                                            "position":  [
+                                                             500,
+                                                             200
+                                                         ],
+                                            "type":  "n8n-nodes-base.wait",
+                                            "typeVersion":  1
+                                        },
+                                        {
+                                            "id":  "trigger-process",
+                                            "name":  "Trigger Process",
+                                            "parameters":  {
+                                                               "jsonParameters":  true,
+                                                               "method":  "POST",
+                                                               "options":  {
+
+                                                                           },
+                                                               "sendBody":  true,
+                                                               "specifyBody":  "json",
+                                                               "url":  "https://n8n.larryvanscamper.com/webhook/testkw"
+                                                           },
+                                            "position":  [
+                                                             700,
+                                                             200
+                                                         ],
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.1
+                                        },
+                                        {
+                                            "id":  "webhook-options",
+                                            "name":  "Options Webhook",
+                                            "parameters":  {
+                                                               "httpMethod":  "OPTIONS",
+                                                               "options":  {
+                                                                               "allowedOrigins":  "*"
+                                                                           },
+                                                               "path":  "seo-schedule",
+                                                               "responseMode":  "responseNode"
+                                                           },
+                                            "position":  [
+                                                             100,
+                                                             400
+                                                         ],
+                                            "type":  "n8n-nodes-base.webhook",
+                                            "typeVersion":  2
+                                        },
+                                        {
+                                            "id":  "respond-options",
+                                            "name":  "Respond to Options",
+                                            "parameters":  {
+                                                               "options":  {
+                                                                               "responseHeaders":  {
+                                                                                                       "entries":  [
+                                                                                                                       {
+                                                                                                                           "name":  "Access-Control-Allow-Origin",
+                                                                                                                           "value":  "*"
+                                                                                                                       },
+                                                                                                                       {
+                                                                                                                           "name":  "Access-Control-Allow-Methods",
+                                                                                                                           "value":  "POST, OPTIONS"
+                                                                                                                       },
+                                                                                                                       {
+                                                                                                                           "name":  "Access-Control-Allow-Headers",
+                                                                                                                           "value":  "Content-Type, Authorization, X-Requested-With, Origin, Accept"
+                                                                                                                       },
+                                                                                                                       {
+                                                                                                                           "name":  "Access-Control-Max-Age",
+                                                                                                                           "value":  "86400"
+                                                                                                                       }
+                                                                                                                   ]
+                                                                                                   }
+                                                                           },
+                                                               "respondWith":  "text",
+                                                               "responseBody":  "OK"
+                                                           },
+                                            "position":  [
+                                                             300,
+                                                             400
+                                                         ],
+                                            "type":  "n8n-nodes-base.respondToWebhook",
+                                            "typeVersion":  1
+                                        }
+                                    ],
+                          "connections":  {
+                                              "Calculate Delay":  {
+                                                                      "main":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "index":  0,
+                                                                                           "node":  "Wait for Schedule",
+                                                                                           "type":  "main"
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                                  },
+                                              "Options Webhook":  {
+                                                                      "main":  [
+                                                                                   [
+                                                                                       {
+                                                                                           "index":  0,
+                                                                                           "node":  "Respond to Options",
+                                                                                           "type":  "main"
+                                                                                       }
+                                                                                   ]
+                                                                               ]
+                                                                  },
+                                              "Schedule Webhook":  {
+                                                                       "main":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "index":  0,
+                                                                                            "node":  "Calculate Delay",
+                                                                                            "type":  "main"
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                                   },
+                                              "Wait for Schedule":  {
+                                                                        "main":  [
+                                                                                     [
+                                                                                         {
+                                                                                             "index":  0,
+                                                                                             "node":  "Trigger Process",
+                                                                                             "type":  "main"
+                                                                                         }
+                                                                                     ]
+                                                                                 ]
+                                                                    }
+                                          },
+                          "authors":  "Jesús Matallanos",
+                          "name":  "Version a9da9378",
+                          "description":  "",
+                          "autosaved":  false,
+                          "workflowPublishHistory":  [
+                                                         {
+                                                             "createdAt":  "2026-01-30T20:57:57.723Z",
+                                                             "id":  79,
+                                                             "workflowId":  "P4YTQLMkgJzu5Hny",
+                                                             "versionId":  "a9da9378-d42c-400b-ad64-f06f75c962ca",
+                                                             "event":  "activated",
+                                                             "userId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9"
+                                                         }
+                                                     ]
+                      }
+}

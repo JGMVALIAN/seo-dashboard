@@ -1,0 +1,39 @@
+# Archivos y carpetas ignoradas por Git
+
+# Archivos de configuración con credenciales
+.env
+*.env
+key.txt
+CREDENTIALS_SETUP_SEO_WORKFLOW.md
+credential_mapping_seo.json
+
+# Carpetas temporales y de desarrollo
+.claude/
+node_modules/
+screenshots/
+
+# Carpeta stitch (artefactos temporales de generación)
+workflows/seo-simple/stitch/
+
+# Archivos de backup
+*.bak
+*.backup
+*~
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de prueba
+test_data/
+*.test.json

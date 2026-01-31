@@ -1,0 +1,680 @@
+﻿{
+    "updatedAt":  "2026-01-30T22:13:55.013Z",
+    "createdAt":  "2026-01-29T17:59:03.360Z",
+    "id":  "bptd1Vi63A08cdAj",
+    "name":  "SEO Content Generator - Simple complete",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "options":  {
+
+                                                     },
+                                         "path":  "db0931a7-fb62-4a3a-a79f-915cd918edaf",
+                                         "responseMode":  "onReceived"
+                                     },
+                      "id":  "b72ca102-8f49-4ba0-aa90-7f74fee0c9b2",
+                      "name":  "Webhook",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2,
+                      "position":  [
+                                       768,
+                                       0
+                                   ],
+                      "webhookId":  "seo-simple-v2",
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "// Generar prompt SEO optimizado\nconst input = $input.first().json;\n\n// Handle both direct and body-wrapped input\nconst body = input.body || input;\n\nconst topic = body.topic || body.keyword || \u0027Contenido SEO\u0027;\nconst keyword = body.keyword || topic;\nconst wordCount = body.word_count || 1500;\nconst language = body.language || \u0027es\u0027;\nconst tone = body.tone || \u0027professional\u0027;\nconst sendEmail = body.send_email === true || body.send_email === \u0027true\u0027;\n\nconst prompt = `Eres un experto redactor SEO. Crea un artículo completo y detallado sobre:\n\nTEMA: ${topic}\nKEYWORD PRINCIPAL: ${keyword}\nLONGITUD: ${wordCount} palabras (MÍNIMO)\nIDIOMA: ${language === \u0027es\u0027 ? \u0027Español\u0027 : \u0027English\u0027}\nTONO: ${tone}\n\nESTRUCTURA REQUERIDA:\n1. Título H1 optimizado con la keyword\n2. Introducción (150-200 palabras)\n3. Cuerpo con 6-8 secciones H2\n4. Cada H2 con 2-3 subsecciones H3\n5. FAQ con 7-10 preguntas\n6. Conclusión (100-150 palabras)\n\nREQUISITOS CRÍTICOS:\n- Escribe MÍNIMO ${wordCount} palabras\n- NO uses placeholders como \"[contenido omitido]\"\n- Incluye datos, estadísticas y ejemplos reales\n- Usa la keyword \"${keyword}\" naturalmente 15-20 veces\n- Formato HTML limpio (h2, h3, p, ul, ol, li)\n\nRESPONDE SOLO CON UN JSON (sin markdown, sin \\`\\`\\`json):\n\n{\n  \"title\": \"Título SEO optimizado\",\n  \"meta_description\": \"Meta description de 150-160 caracteres\",\n  \"slug\": \"url-slug-optimizado\",\n  \"introduction\": \"\u003cp\u003eIntroducción completa...\u003c/p\u003e\",\n  \"body_html\": \"\u003ch2\u003ePrimera sección\u003c/h2\u003e\u003cp\u003eContenido...\u003c/p\u003e...\",\n  \"faq\": [\n    {\"question\": \"Pregunta 1\", \"answer\": \"Respuesta completa...\"}\n  ],\n  \"conclusion\": \"\u003cp\u003eConclusión...\u003c/p\u003e\",\n  \"word_count\": ${wordCount}\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    send_email: sendEmail,\n    topic: topic,\n    keyword: keyword,\n    word_count: wordCount,\n    language: language\n  }\n}];"
+                                     },
+                      "id":  "740fb212-4919-4371-b14a-c7afded580ac",
+                      "name":  "Build SEO Prompt",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       992,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "https://openrouter.ai/api/v1/chat/completions",
+                                         "authentication":  "predefinedCredentialType",
+                                         "nodeCredentialType":  "httpHeaderAuth",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ { \"model\": \"deepseek/deepseek-v3.2\", \"messages\": [{ \"role\": \"user\", \"content\": $json.prompt }], \"temperature\": 0.7, \"max_tokens\": 8000 } }}",
+                                         "options":  {
+                                                         "timeout":  120000
+                                                     }
+                                     },
+                      "id":  "c6b1caf7-30f6-4e69-bbe0-2c7d478302f6",
+                      "name":  "Generate with AI",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       1216,
+                                       0
+                                   ],
+                      "credentials":  {
+                                          "httpHeaderAuth":  {
+                                                                 "id":  "MJPLNS37epTFtwbI",
+                                                                 "name":  "Header Auth account 2"
+                                                             }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const items = $input.all();\n// RETRIEVE CONTEXT FROM UPSTREAM NODE\n// This is the key fix: Get the original variables from \"Build SEO Prompt\"\n// Note: Depending on n8n version, syntax is $(\u0027Node Name\u0027).first() or access via item.pairedItem\n// Safe approach: Iterating and trying to match or just getting first as typically it is 1 item.\n\nconst results = [];\n\n// Helper safe version\nfunction stripAccents(str) {\n    if (!str) return \u0027\u0027;\n    return str.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n}\n\nfunction countOccurrences(text, search) {\n    if (!search || !text) return 0;\n    const cleanText = stripAccents(text.toLowerCase());\n    const cleanSearch = stripAccents(search.toLowerCase());\n    return cleanText.split(cleanSearch).length - 1;\n}\n\n// Access the previous node\u0027s input using the n8n syntax for older versions compatible\n// If $item is available (v1+):\nconst promptItems = $(\"Build SEO Prompt\").all();\n\nfor (let i = 0; i \u003c items.length; i++) {\n    const item = items[i];\n    // Get corresponding context item (assuming 1:1 match)\n    const context = promptItems[i] ? promptItems[i].json : {};\n    \n    try {\n        const json = item.json;\n        const rawText = json.text || \n                       (json.choices \u0026\u0026 json.choices[0] \u0026\u0026 json.choices[0].message \u0026\u0026 json.choices[0].message.content) || \n                       JSON.stringify(json); \n        \n        let content = {};\n        \n        // Try parsing JSON block from AI\n        const jsonMatch = rawText.match(/```json\\n([\\s\\S]*?)\\n```/) || rawText.match(/{[\\s\\S]*}/);\n        if (jsonMatch) {\n            try {\n                content = JSON.parse(jsonMatch[1] || jsonMatch[0]);\n            } catch (e) {\n                content = { body_html: rawText };\n            }\n        } else {\n            content = { body_html: rawText };\n        }\n        \n        // Calculate Metrics\n        // Use CONTEXT variables (from Build SEO Prompt) if not in new content\n        const keyword = context.keyword || \u0027SEO\u0027;\n        const fullText = (content.introduction || \u0027\u0027) + (content.body_html || \u0027\u0027) + (content.conclusion || \u0027\u0027);\n        const wordCount = content.word_count || (fullText.trim() === \u0027\u0027 ? 0 : fullText.trim().split(/\\s+/).length);\n        const keywordCount = countOccurrences(fullText, keyword);\n        const h2Count = (content.body_html || \u0027\u0027).split(\u0027\u003ch2\u0027).length - 1;\n        const hasFAQ = (content.faq \u0026\u0026 content.faq.length \u003e 0);\n        \n        let score = 0;\n        if (wordCount \u003e= 1500) score += 40;\n        else if (wordCount \u003e= 1000) score += 25;\n        if (keywordCount \u003e= 10) score += 20;\n        if (h2Count \u003e= 5) score += 20;\n        if (hasFAQ) score += 20;\n        if (score \u003e 100) score = 100;\n        \n        results.push({\n            json: {\n                ...context, // SPREAD CONTEXT (send_email, topic, keyword, etc)\n                ai_response_metadata: json, // Keep AI metadata if needed\n                generated_content: content,\n                score: score,\n                word_count: wordCount,\n                keyword_density: wordCount \u003e 0 ? ((keywordCount / wordCount) * 100).toFixed(2) : 0\n            }\n        });\n    } catch (error) {\n        results.push({ json: { ...item.json, error: error.message } });\n    }\n}\n\nreturn results;"
+                                     },
+                      "id":  "bca10d4a-beca-4719-80da-1d926a384522",
+                      "name":  "Parse Response",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1424,
+                                       0
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "append",
+                                         "documentId":  {
+                                                            "__rl":  true,
+                                                            "value":  "1Q-Zndypj7Ql2kJpeWVD-82ywptYMY_YXJjCni1ZJyhE",
+                                                            "mode":  "id"
+                                                        },
+                                         "sheetName":  {
+                                                           "__rl":  true,
+                                                           "value":  "gid=0",
+                                                           "mode":  "list",
+                                                           "cachedResultName":  "Sheet1",
+                                                           "cachedResultUrl":  "https://docs.google.com/spreadsheets/d/1Q-Zndypj7Ql2kJpeWVD-82ywptYMY_YXJjCni1ZJyhE/edit#gid=0"
+                                                       },
+                                         "columns":  {
+                                                         "mappingMode":  "autoMapInputData",
+                                                         "value":  {
+
+                                                                   }
+                                                     },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "save-sheets",
+                      "name":  "Save to Sheets",
+                      "type":  "n8n-nodes-base.googleSheets",
+                      "typeVersion":  4.4,
+                      "position":  [
+                                       1120,
+                                       304
+                                   ],
+                      "credentials":  {
+                                          "googleSheetsOAuth2Api":  {
+                                                                        "id":  "cu0w6Z9j874ktEH4",
+                                                                        "name":  "Google Sheets account"
+                                                                    }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict"
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "send-email-check",
+                                                                                   "leftValue":  "={{ $json.send_email }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "equals"
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "check-email",
+                      "name":  "Should Send Email?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1360,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const input = $input.first().json;\nconst content = input.generated_content;\nconst keyword = input.keyword || \u0027SEO\u0027;\nconst topic = input.topic || keyword;\n\n// Helpers safe version\nfunction stripAccents(str) {\n    if (!str) return \u0027\u0027;\n    return str.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n}\n\nfunction countOccurrences(text, search) {\n    if (!search || !text) return 0;\n    const cleanText = stripAccents(text.toLowerCase());\n    const cleanSearch = stripAccents(search.toLowerCase());\n    \n    // Simple split-based count to avoid Regex syntax errors\n    return cleanText.split(cleanSearch).length - 1;\n}\n\nconst fullText = (content.introduction || \u0027\u0027) + (content.body_html || \u0027\u0027) + (content.conclusion || \u0027\u0027);\n// Count words by splitting by space\nconst wordCount = content.word_count || (fullText.trim() === \u0027\u0027 ? 0 : fullText.trim().split(/\\s+/).length);\nconst keywordCount = countOccurrences(fullText, keyword);\nconst density = wordCount \u003e 0 ? ((keywordCount / wordCount) * 100).toFixed(2) : 0;\n\n// Quality Score Logic\nconst h2Count = (content.body_html || \u0027\u0027).split(\u0027\u003ch2\u0027).length - 1;\nconst hasFAQ = (content.faq \u0026\u0026 content.faq.length \u003e 0);\nlet score = 0;\nif (wordCount \u003e= 1500) score += 40;\nelse if (wordCount \u003e= 1000) score += 25;\nif (keywordCount \u003e= 10) score += 20;\nif (h2Count \u003e= 5) score += 20;\nif (hasFAQ) score += 20;\nif (score \u003e 100) score = 100;\n\nconst qualityText = score \u003e= 90 ? \u0027Excelente\u0027 : score \u003e= 70 ? \u0027Bueno\u0027 : \u0027Mejorable\u0027;\nconst qualityColor = score \u003e= 90 ? \u0027#10b981\u0027 : score \u003e= 70 ? \u0027#f59e0b\u0027 : \u0027#ef4444\u0027;\n\nconst emailHtml = `\n\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n  \u003cstyle\u003e\n    body { font-family: \u0027Inter\u0027, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }\n    .container { max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }\n    .header { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; padding: 40px 20px; text-align: center; }\n    .content { padding: 30px; }\n    .metrics { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }\n    .metric { text-align: center; flex: 1; min-width: 120px; margin: 10px; padding: 15px; background: #f8fafc; border-radius: 8px; }\n    .metric-value { display: block; font-size: 24px; font-weight: bold; color: #4f46e5; }\n    .metric-label { font-size: 12px; color: #64748b; text-transform: uppercase; }\n    .quality-badge { background: ${qualityColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }\n    .meta-info { background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; }\n    .meta-item { margin-bottom: 10px; }\n    .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv class=\"container\"\u003e\n    \u003cdiv class=\"header\"\u003e\n      \u003ch1 style=\"margin:0\"\u003e¡Artículo Generado!\u003c/h1\u003e\n      \u003cp style=\"opacity:0.9\"\u003eTu contenido SEO está listo para publicar\u003c/p\u003e\n    \u003c/div\u003e\n    \n    \u003cdiv class=\"content\"\u003e\n      \u003cdiv class=\"metrics\"\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${wordCount}\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003ePalabras\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${score}/100\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eQuality Score\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${density}%\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eKeyword Density\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${h2Count}\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eSecciones H2\u003c/span\u003e\n        \u003c/div\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"meta-info\"\u003e\n        \u003cdiv class=\"meta-item\"\u003e\n          \u003cstrong\u003eTítulo SEO\u003c/strong\u003e\n          \u003cdiv\u003e${content.title}\u003c/div\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"meta-item\"\u003e\n          \u003cstrong\u003eSlug\u003c/strong\u003e\n          \u003cdiv\u003e/${content.slug}\u003c/div\u003e\n        \u003c/div\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"content-preview\"\u003e\n        \u003ch3\u003eMeta Description\u003c/h3\u003e\n        \u003cp\u003e${content.meta_description}\u003c/p\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"content-preview\"\u003e\n        \u003ch3\u003ePreview del Contenido\u003c/h3\u003e\n        \u003cp\u003e\u003cstrong\u003eTema:\u003c/strong\u003e ${topic}\u003c/p\u003e\n        \u003cp\u003e\u003cstrong\u003eKeyword:\u003c/strong\u003e ${keyword}\u003c/p\u003e\n        \u003cp\u003e\u003cstrong\u003eCalidad:\u003c/strong\u003e \u003cspan class=\"quality-badge\"\u003e${qualityText}\u003c/span\u003e\u003c/p\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"footer\"\u003e\n        \u003cp\u003eEste contenido ha sido generado automáticamente por tu sistema SEO\u003c/p\u003e\n        \u003cp\u003eRevisa Google Sheets para ver el contenido completo\u003c/p\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n`;\n\nreturn [{\n    json: {\n        ...input, // FIX: Pass through all original data (including generated_content)\n        email_html: emailHtml,\n        email_body: emailHtml,\n        email_subject: `[SEO] ${content.title} - Quality: ${score}/100`,\n        email_to: \"matallanos4@gmail.com\"\n    }\n}];"
+                                     },
+                      "id":  "prepare-email",
+                      "name":  "Prepare Email HTML",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1600,
+                                       200
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "message":  "={{ $(\u0027Prepare Email HTML\u0027).first().json.email_html }}",
+                                         "operation":  "send",
+                                         "resource":  "message",
+                                         "sendTo":  "matallanos4@gmail.com",
+                                         "subject":  "={{ \u0027[SEO Content] \u0027 + $(\u0027Prepare Email HTML\u0027).first().json.generated_content?.title || $(\u0027Build SEO Prompt\u0027).first().json.keyword }}"
+                                     },
+                      "id":  "send-email",
+                      "name":  "Send Email",
+                      "type":  "n8n-nodes-base.gmail",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       1840,
+                                       200
+                                   ],
+                      "credentials":  {
+                                          "gmailOAuth2":  {
+                                                              "id":  "Qn5KATwXpsts9J52",
+                                                              "name":  "Gmail account"
+                                                          }
+                                      },
+                      "onError":  "continueRegularOutput"
+                  }
+              ],
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Build SEO Prompt",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Build SEO Prompt":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Generate with AI",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Generate with AI":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Parse Response",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "Parse Response":  {
+                                               "main":  [
+                                                            [
+                                                                {
+                                                                    "node":  "Save to Sheets",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                },
+                                                                {
+                                                                    "node":  "Should Send Email?",
+                                                                    "type":  "main",
+                                                                    "index":  0
+                                                                }
+                                                            ]
+                                                        ]
+                                           },
+                        "Should Send Email?":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Prepare Email HTML",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Prepare Email HTML":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Send Email",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "Send Email":  {
+                                           "main":  [
+                                                        [
+                                                            {
+                                                                "node":  "Save to Sheets",
+                                                                "type":  "main",
+                                                                "index":  0
+                                                            }
+                                                        ]
+                                                    ]
+                                       }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "availableInMCP":  false,
+                     "callerPolicy":  "workflowsFromSameOwner"
+                 },
+    "staticData":  null,
+    "meta":  null,
+    "pinData":  {
+                    "Webhook":  [
+                                    {
+                                        "json":  {
+                                                     "headers":  {
+                                                                     "connection":  "upgrade",
+                                                                     "host":  "n8n.larryvanscamper.com",
+                                                                     "x-real-ip":  "81.44.69.254",
+                                                                     "x-forwarded-for":  "81.44.69.254",
+                                                                     "x-forwarded-proto":  "https",
+                                                                     "content-length":  "191",
+                                                                     "content-type":  "application/json",
+                                                                     "user-agent":  "Mozilla/5.0 (Windows NT; Windows NT 10.0; es-ES) WindowsPowerShell/5.1.26100.7462"
+                                                                 },
+                                                     "params":  {
+
+                                                                },
+                                                     "query":  {
+
+                                                               },
+                                                     "body":  {
+                                                                  "topic":  "SEO con IA 2026",
+                                                                  "keyword":  "seo inteligencia artificial",
+                                                                  "word_count":  500,
+                                                                  "language":  "es",
+                                                                  "tone":  "professional",
+                                                                  "send_email":  false
+                                                              },
+                                                     "webhookUrl":  "https://n8n.larryvanscamper.com/webhook/db0931a7-fb62-4a3a-a79f-915cd918edaf",
+                                                     "executionMode":  "production"
+                                                 },
+                                        "pairedItem":  {
+                                                           "item":  0
+                                                       }
+                                    }
+                                ]
+                },
+    "versionId":  "29e4db8c-cc43-44cf-9bcf-4f42b4c1ca74",
+    "activeVersionId":  "29e4db8c-cc43-44cf-9bcf-4f42b4c1ca74",
+    "versionCounter":  93,
+    "triggerCount":  1,
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-01-29T17:59:03.367Z",
+                       "createdAt":  "2026-01-29T17:59:03.367Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "bptd1Vi63A08cdAj",
+                       "projectId":  "VFNLZG86dWLIX5E4",
+                       "project":  {
+                                       "updatedAt":  "2026-01-28T17:00:09.679Z",
+                                       "createdAt":  "2026-01-04T16:20:46.534Z",
+                                       "id":  "VFNLZG86dWLIX5E4",
+                                       "name":  "Jesús Matallanos \u003cmatallanos4@hotmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                       "projectRelations":  [
+                                                                {
+                                                                    "updatedAt":  "2026-01-04T16:20:46.535Z",
+                                                                    "createdAt":  "2026-01-04T16:20:46.535Z",
+                                                                    "userId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                                                    "projectId":  "VFNLZG86dWLIX5E4",
+                                                                    "user":  {
+                                                                                 "updatedAt":  "2026-01-30T20:48:44.000Z",
+                                                                                 "createdAt":  "2026-01-04T16:20:46.169Z",
+                                                                                 "id":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9",
+                                                                                 "email":  "matallanos4@hotmail.com",
+                                                                                 "firstName":  "Jesús",
+                                                                                 "lastName":  "Matallanos",
+                                                                                 "personalizationAnswers":  {
+                                                                                                                "version":  "v4",
+                                                                                                                "personalization_survey_submitted_at":  "2026-01-28T17:00:21.007Z",
+                                                                                                                "personalization_survey_n8n_version":  "2.1.4",
+                                                                                                                "companySize":  "personalUser",
+                                                                                                                "companyType":  "saas",
+                                                                                                                "role":  "business-owner",
+                                                                                                                "reportedSource":  "google"
+                                                                                                            },
+                                                                                 "settings":  {
+                                                                                                  "userActivated":  true,
+                                                                                                  "firstSuccessfulWorkflowId":  "q0JKV3RdQOVM6NMY",
+                                                                                                  "userActivatedAt":  1769644414181
+                                                                                              },
+                                                                                 "disabled":  false,
+                                                                                 "mfaEnabled":  false,
+                                                                                 "lastActiveAt":  "2026-01-30",
+                                                                                 "isPending":  false
+                                                                             }
+                                                                }
+                                                            ]
+                                   }
+                   }
+               ],
+    "tags":  [
+                 {
+                     "updatedAt":  "2026-01-29T20:37:30.520Z",
+                     "createdAt":  "2026-01-29T20:37:30.520Z",
+                     "id":  "3D0HPDNK0l4klQv3",
+                     "name":  "FUNCIONA"
+                 }
+             ],
+    "activeVersion":  {
+                          "updatedAt":  "2026-01-30T22:13:55.014Z",
+                          "createdAt":  "2026-01-30T22:13:55.014Z",
+                          "versionId":  "29e4db8c-cc43-44cf-9bcf-4f42b4c1ca74",
+                          "workflowId":  "bptd1Vi63A08cdAj",
+                          "nodes":  [
+                                        {
+                                            "parameters":  {
+                                                               "httpMethod":  "POST",
+                                                               "options":  {
+
+                                                                           },
+                                                               "path":  "db0931a7-fb62-4a3a-a79f-915cd918edaf",
+                                                               "responseMode":  "onReceived"
+                                                           },
+                                            "id":  "b72ca102-8f49-4ba0-aa90-7f74fee0c9b2",
+                                            "name":  "Webhook",
+                                            "type":  "n8n-nodes-base.webhook",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             768,
+                                                             0
+                                                         ],
+                                            "webhookId":  "seo-simple-v2",
+                                            "onError":  "continueRegularOutput"
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "// Generar prompt SEO optimizado\nconst input = $input.first().json;\n\n// Handle both direct and body-wrapped input\nconst body = input.body || input;\n\nconst topic = body.topic || body.keyword || \u0027Contenido SEO\u0027;\nconst keyword = body.keyword || topic;\nconst wordCount = body.word_count || 1500;\nconst language = body.language || \u0027es\u0027;\nconst tone = body.tone || \u0027professional\u0027;\nconst sendEmail = body.send_email === true || body.send_email === \u0027true\u0027;\n\nconst prompt = `Eres un experto redactor SEO. Crea un artículo completo y detallado sobre:\n\nTEMA: ${topic}\nKEYWORD PRINCIPAL: ${keyword}\nLONGITUD: ${wordCount} palabras (MÍNIMO)\nIDIOMA: ${language === \u0027es\u0027 ? \u0027Español\u0027 : \u0027English\u0027}\nTONO: ${tone}\n\nESTRUCTURA REQUERIDA:\n1. Título H1 optimizado con la keyword\n2. Introducción (150-200 palabras)\n3. Cuerpo con 6-8 secciones H2\n4. Cada H2 con 2-3 subsecciones H3\n5. FAQ con 7-10 preguntas\n6. Conclusión (100-150 palabras)\n\nREQUISITOS CRÍTICOS:\n- Escribe MÍNIMO ${wordCount} palabras\n- NO uses placeholders como \"[contenido omitido]\"\n- Incluye datos, estadísticas y ejemplos reales\n- Usa la keyword \"${keyword}\" naturalmente 15-20 veces\n- Formato HTML limpio (h2, h3, p, ul, ol, li)\n\nRESPONDE SOLO CON UN JSON (sin markdown, sin \\`\\`\\`json):\n\n{\n  \"title\": \"Título SEO optimizado\",\n  \"meta_description\": \"Meta description de 150-160 caracteres\",\n  \"slug\": \"url-slug-optimizado\",\n  \"introduction\": \"\u003cp\u003eIntroducción completa...\u003c/p\u003e\",\n  \"body_html\": \"\u003ch2\u003ePrimera sección\u003c/h2\u003e\u003cp\u003eContenido...\u003c/p\u003e...\",\n  \"faq\": [\n    {\"question\": \"Pregunta 1\", \"answer\": \"Respuesta completa...\"}\n  ],\n  \"conclusion\": \"\u003cp\u003eConclusión...\u003c/p\u003e\",\n  \"word_count\": ${wordCount}\n}`;\n\nreturn [{\n  json: {\n    prompt: prompt,\n    send_email: sendEmail,\n    topic: topic,\n    keyword: keyword,\n    word_count: wordCount,\n    language: language\n  }\n}];"
+                                                           },
+                                            "id":  "740fb212-4919-4371-b14a-c7afded580ac",
+                                            "name":  "Build SEO Prompt",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             992,
+                                                             0
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "method":  "POST",
+                                                               "url":  "https://openrouter.ai/api/v1/chat/completions",
+                                                               "authentication":  "predefinedCredentialType",
+                                                               "nodeCredentialType":  "httpHeaderAuth",
+                                                               "sendBody":  true,
+                                                               "specifyBody":  "json",
+                                                               "jsonBody":  "={{ { \"model\": \"deepseek/deepseek-v3.2\", \"messages\": [{ \"role\": \"user\", \"content\": $json.prompt }], \"temperature\": 0.7, \"max_tokens\": 8000 } }}",
+                                                               "options":  {
+                                                                               "timeout":  120000
+                                                                           }
+                                                           },
+                                            "id":  "c6b1caf7-30f6-4e69-bbe0-2c7d478302f6",
+                                            "name":  "Generate with AI",
+                                            "type":  "n8n-nodes-base.httpRequest",
+                                            "typeVersion":  4.2,
+                                            "position":  [
+                                                             1216,
+                                                             0
+                                                         ],
+                                            "credentials":  {
+                                                                "httpHeaderAuth":  {
+                                                                                       "id":  "MJPLNS37epTFtwbI",
+                                                                                       "name":  "Header Auth account 2"
+                                                                                   }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "const items = $input.all();\n// RETRIEVE CONTEXT FROM UPSTREAM NODE\n// This is the key fix: Get the original variables from \"Build SEO Prompt\"\n// Note: Depending on n8n version, syntax is $(\u0027Node Name\u0027).first() or access via item.pairedItem\n// Safe approach: Iterating and trying to match or just getting first as typically it is 1 item.\n\nconst results = [];\n\n// Helper safe version\nfunction stripAccents(str) {\n    if (!str) return \u0027\u0027;\n    return str.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n}\n\nfunction countOccurrences(text, search) {\n    if (!search || !text) return 0;\n    const cleanText = stripAccents(text.toLowerCase());\n    const cleanSearch = stripAccents(search.toLowerCase());\n    return cleanText.split(cleanSearch).length - 1;\n}\n\n// Access the previous node\u0027s input using the n8n syntax for older versions compatible\n// If $item is available (v1+):\nconst promptItems = $(\"Build SEO Prompt\").all();\n\nfor (let i = 0; i \u003c items.length; i++) {\n    const item = items[i];\n    // Get corresponding context item (assuming 1:1 match)\n    const context = promptItems[i] ? promptItems[i].json : {};\n    \n    try {\n        const json = item.json;\n        const rawText = json.text || \n                       (json.choices \u0026\u0026 json.choices[0] \u0026\u0026 json.choices[0].message \u0026\u0026 json.choices[0].message.content) || \n                       JSON.stringify(json); \n        \n        let content = {};\n        \n        // Try parsing JSON block from AI\n        const jsonMatch = rawText.match(/```json\\n([\\s\\S]*?)\\n```/) || rawText.match(/{[\\s\\S]*}/);\n        if (jsonMatch) {\n            try {\n                content = JSON.parse(jsonMatch[1] || jsonMatch[0]);\n            } catch (e) {\n                content = { body_html: rawText };\n            }\n        } else {\n            content = { body_html: rawText };\n        }\n        \n        // Calculate Metrics\n        // Use CONTEXT variables (from Build SEO Prompt) if not in new content\n        const keyword = context.keyword || \u0027SEO\u0027;\n        const fullText = (content.introduction || \u0027\u0027) + (content.body_html || \u0027\u0027) + (content.conclusion || \u0027\u0027);\n        const wordCount = content.word_count || (fullText.trim() === \u0027\u0027 ? 0 : fullText.trim().split(/\\s+/).length);\n        const keywordCount = countOccurrences(fullText, keyword);\n        const h2Count = (content.body_html || \u0027\u0027).split(\u0027\u003ch2\u0027).length - 1;\n        const hasFAQ = (content.faq \u0026\u0026 content.faq.length \u003e 0);\n        \n        let score = 0;\n        if (wordCount \u003e= 1500) score += 40;\n        else if (wordCount \u003e= 1000) score += 25;\n        if (keywordCount \u003e= 10) score += 20;\n        if (h2Count \u003e= 5) score += 20;\n        if (hasFAQ) score += 20;\n        if (score \u003e 100) score = 100;\n        \n        results.push({\n            json: {\n                ...context, // SPREAD CONTEXT (send_email, topic, keyword, etc)\n                ai_response_metadata: json, // Keep AI metadata if needed\n                generated_content: content,\n                score: score,\n                word_count: wordCount,\n                keyword_density: wordCount \u003e 0 ? ((keywordCount / wordCount) * 100).toFixed(2) : 0\n            }\n        });\n    } catch (error) {\n        results.push({ json: { ...item.json, error: error.message } });\n    }\n}\n\nreturn results;"
+                                                           },
+                                            "id":  "bca10d4a-beca-4719-80da-1d926a384522",
+                                            "name":  "Parse Response",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             1424,
+                                                             0
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "operation":  "append",
+                                                               "documentId":  {
+                                                                                  "__rl":  true,
+                                                                                  "value":  "1Q-Zndypj7Ql2kJpeWVD-82ywptYMY_YXJjCni1ZJyhE",
+                                                                                  "mode":  "id"
+                                                                              },
+                                                               "sheetName":  {
+                                                                                 "__rl":  true,
+                                                                                 "value":  "gid=0",
+                                                                                 "mode":  "list",
+                                                                                 "cachedResultName":  "Sheet1",
+                                                                                 "cachedResultUrl":  "https://docs.google.com/spreadsheets/d/1Q-Zndypj7Ql2kJpeWVD-82ywptYMY_YXJjCni1ZJyhE/edit#gid=0"
+                                                                             },
+                                                               "columns":  {
+                                                                               "mappingMode":  "autoMapInputData",
+                                                                               "value":  {
+
+                                                                                         }
+                                                                           },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "id":  "save-sheets",
+                                            "name":  "Save to Sheets",
+                                            "type":  "n8n-nodes-base.googleSheets",
+                                            "typeVersion":  4.4,
+                                            "position":  [
+                                                             1120,
+                                                             304
+                                                         ],
+                                            "credentials":  {
+                                                                "googleSheetsOAuth2Api":  {
+                                                                                              "id":  "cu0w6Z9j874ktEH4",
+                                                                                              "name":  "Google Sheets account"
+                                                                                          }
+                                                            }
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "conditions":  {
+                                                                                  "options":  {
+                                                                                                  "caseSensitive":  true,
+                                                                                                  "leftValue":  "",
+                                                                                                  "typeValidation":  "strict"
+                                                                                              },
+                                                                                  "conditions":  [
+                                                                                                     {
+                                                                                                         "id":  "send-email-check",
+                                                                                                         "leftValue":  "={{ $json.send_email }}",
+                                                                                                         "rightValue":  true,
+                                                                                                         "operator":  {
+                                                                                                                          "type":  "boolean",
+                                                                                                                          "operation":  "equals"
+                                                                                                                      }
+                                                                                                     }
+                                                                                                 ],
+                                                                                  "combinator":  "and"
+                                                                              },
+                                                               "options":  {
+
+                                                                           }
+                                                           },
+                                            "id":  "check-email",
+                                            "name":  "Should Send Email?",
+                                            "type":  "n8n-nodes-base.if",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             1360,
+                                                             300
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "jsCode":  "const input = $input.first().json;\nconst content = input.generated_content;\nconst keyword = input.keyword || \u0027SEO\u0027;\nconst topic = input.topic || keyword;\n\n// Helpers safe version\nfunction stripAccents(str) {\n    if (!str) return \u0027\u0027;\n    return str.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n}\n\nfunction countOccurrences(text, search) {\n    if (!search || !text) return 0;\n    const cleanText = stripAccents(text.toLowerCase());\n    const cleanSearch = stripAccents(search.toLowerCase());\n    \n    // Simple split-based count to avoid Regex syntax errors\n    return cleanText.split(cleanSearch).length - 1;\n}\n\nconst fullText = (content.introduction || \u0027\u0027) + (content.body_html || \u0027\u0027) + (content.conclusion || \u0027\u0027);\n// Count words by splitting by space\nconst wordCount = content.word_count || (fullText.trim() === \u0027\u0027 ? 0 : fullText.trim().split(/\\s+/).length);\nconst keywordCount = countOccurrences(fullText, keyword);\nconst density = wordCount \u003e 0 ? ((keywordCount / wordCount) * 100).toFixed(2) : 0;\n\n// Quality Score Logic\nconst h2Count = (content.body_html || \u0027\u0027).split(\u0027\u003ch2\u0027).length - 1;\nconst hasFAQ = (content.faq \u0026\u0026 content.faq.length \u003e 0);\nlet score = 0;\nif (wordCount \u003e= 1500) score += 40;\nelse if (wordCount \u003e= 1000) score += 25;\nif (keywordCount \u003e= 10) score += 20;\nif (h2Count \u003e= 5) score += 20;\nif (hasFAQ) score += 20;\nif (score \u003e 100) score = 100;\n\nconst qualityText = score \u003e= 90 ? \u0027Excelente\u0027 : score \u003e= 70 ? \u0027Bueno\u0027 : \u0027Mejorable\u0027;\nconst qualityColor = score \u003e= 90 ? \u0027#10b981\u0027 : score \u003e= 70 ? \u0027#f59e0b\u0027 : \u0027#ef4444\u0027;\n\nconst emailHtml = `\n\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\u003chead\u003e\n  \u003cstyle\u003e\n    body { font-family: \u0027Inter\u0027, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }\n    .container { max-width: 600px; margin: 20px auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }\n    .header { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; padding: 40px 20px; text-align: center; }\n    .content { padding: 30px; }\n    .metrics { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }\n    .metric { text-align: center; flex: 1; min-width: 120px; margin: 10px; padding: 15px; background: #f8fafc; border-radius: 8px; }\n    .metric-value { display: block; font-size: 24px; font-weight: bold; color: #4f46e5; }\n    .metric-label { font-size: 12px; color: #64748b; text-transform: uppercase; }\n    .quality-badge { background: ${qualityColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; }\n    .meta-info { background: #f1f5f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; }\n    .meta-item { margin-bottom: 10px; }\n    .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; }\n  \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv class=\"container\"\u003e\n    \u003cdiv class=\"header\"\u003e\n      \u003ch1 style=\"margin:0\"\u003e¡Artículo Generado!\u003c/h1\u003e\n      \u003cp style=\"opacity:0.9\"\u003eTu contenido SEO está listo para publicar\u003c/p\u003e\n    \u003c/div\u003e\n    \n    \u003cdiv class=\"content\"\u003e\n      \u003cdiv class=\"metrics\"\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${wordCount}\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003ePalabras\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${score}/100\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eQuality Score\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${density}%\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eKeyword Density\u003c/span\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"metric\"\u003e\n          \u003cspan class=\"metric-value\"\u003e${h2Count}\u003c/span\u003e\n          \u003cspan class=\"metric-label\"\u003eSecciones H2\u003c/span\u003e\n        \u003c/div\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"meta-info\"\u003e\n        \u003cdiv class=\"meta-item\"\u003e\n          \u003cstrong\u003eTítulo SEO\u003c/strong\u003e\n          \u003cdiv\u003e${content.title}\u003c/div\u003e\n        \u003c/div\u003e\n        \u003cdiv class=\"meta-item\"\u003e\n          \u003cstrong\u003eSlug\u003c/strong\u003e\n          \u003cdiv\u003e/${content.slug}\u003c/div\u003e\n        \u003c/div\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"content-preview\"\u003e\n        \u003ch3\u003eMeta Description\u003c/h3\u003e\n        \u003cp\u003e${content.meta_description}\u003c/p\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"content-preview\"\u003e\n        \u003ch3\u003ePreview del Contenido\u003c/h3\u003e\n        \u003cp\u003e\u003cstrong\u003eTema:\u003c/strong\u003e ${topic}\u003c/p\u003e\n        \u003cp\u003e\u003cstrong\u003eKeyword:\u003c/strong\u003e ${keyword}\u003c/p\u003e\n        \u003cp\u003e\u003cstrong\u003eCalidad:\u003c/strong\u003e \u003cspan class=\"quality-badge\"\u003e${qualityText}\u003c/span\u003e\u003c/p\u003e\n      \u003c/div\u003e\n      \n      \u003cdiv class=\"footer\"\u003e\n        \u003cp\u003eEste contenido ha sido generado automáticamente por tu sistema SEO\u003c/p\u003e\n        \u003cp\u003eRevisa Google Sheets para ver el contenido completo\u003c/p\u003e\n      \u003c/div\u003e\n    \u003c/div\u003e\n  \u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n`;\n\nreturn [{\n    json: {\n        ...input, // FIX: Pass through all original data (including generated_content)\n        email_html: emailHtml,\n        email_body: emailHtml,\n        email_subject: `[SEO] ${content.title} - Quality: ${score}/100`,\n        email_to: \"matallanos4@gmail.com\"\n    }\n}];"
+                                                           },
+                                            "id":  "prepare-email",
+                                            "name":  "Prepare Email HTML",
+                                            "type":  "n8n-nodes-base.code",
+                                            "typeVersion":  2,
+                                            "position":  [
+                                                             1600,
+                                                             200
+                                                         ]
+                                        },
+                                        {
+                                            "parameters":  {
+                                                               "message":  "={{ $(\u0027Prepare Email HTML\u0027).first().json.email_html }}",
+                                                               "operation":  "send",
+                                                               "resource":  "message",
+                                                               "sendTo":  "matallanos4@gmail.com",
+                                                               "subject":  "={{ \u0027[SEO Content] \u0027 + $(\u0027Prepare Email HTML\u0027).first().json.generated_content?.title || $(\u0027Build SEO Prompt\u0027).first().json.keyword }}"
+                                                           },
+                                            "id":  "send-email",
+                                            "name":  "Send Email",
+                                            "type":  "n8n-nodes-base.gmail",
+                                            "typeVersion":  2.1,
+                                            "position":  [
+                                                             1840,
+                                                             200
+                                                         ],
+                                            "credentials":  {
+                                                                "gmailOAuth2":  {
+                                                                                    "id":  "Qn5KATwXpsts9J52",
+                                                                                    "name":  "Gmail account"
+                                                                                }
+                                                            },
+                                            "onError":  "continueRegularOutput"
+                                        }
+                                    ],
+                          "connections":  {
+                                              "Webhook":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "Build SEO Prompt",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                                              "Build SEO Prompt":  {
+                                                                       "main":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "node":  "Generate with AI",
+                                                                                            "type":  "main",
+                                                                                            "index":  0
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                                   },
+                                              "Generate with AI":  {
+                                                                       "main":  [
+                                                                                    [
+                                                                                        {
+                                                                                            "node":  "Parse Response",
+                                                                                            "type":  "main",
+                                                                                            "index":  0
+                                                                                        }
+                                                                                    ]
+                                                                                ]
+                                                                   },
+                                              "Parse Response":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Save to Sheets",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      },
+                                                                                      {
+                                                                                          "node":  "Should Send Email?",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                                              "Should Send Email?":  {
+                                                                         "main":  [
+                                                                                      [
+                                                                                          {
+                                                                                              "node":  "Prepare Email HTML",
+                                                                                              "type":  "main",
+                                                                                              "index":  0
+                                                                                          }
+                                                                                      ]
+                                                                                  ]
+                                                                     },
+                                              "Prepare Email HTML":  {
+                                                                         "main":  [
+                                                                                      [
+                                                                                          {
+                                                                                              "node":  "Send Email",
+                                                                                              "type":  "main",
+                                                                                              "index":  0
+                                                                                          }
+                                                                                      ]
+                                                                                  ]
+                                                                     },
+                                              "Send Email":  {
+                                                                 "main":  [
+                                                                              [
+                                                                                  {
+                                                                                      "node":  "Save to Sheets",
+                                                                                      "type":  "main",
+                                                                                      "index":  0
+                                                                                  }
+                                                                              ]
+                                                                          ]
+                                                             }
+                                          },
+                          "authors":  "Jesús Matallanos",
+                          "name":  null,
+                          "description":  null,
+                          "autosaved":  false,
+                          "workflowPublishHistory":  [
+                                                         {
+                                                             "createdAt":  "2026-01-30T22:13:55.095Z",
+                                                             "id":  84,
+                                                             "workflowId":  "bptd1Vi63A08cdAj",
+                                                             "versionId":  "29e4db8c-cc43-44cf-9bcf-4f42b4c1ca74",
+                                                             "event":  "activated",
+                                                             "userId":  "a566efca-8089-4c41-ae9c-d5e9ffa7a7f9"
+                                                         }
+                                                     ]
+                      }
+}
