@@ -10,11 +10,11 @@
 const CONFIG = {
     API_BASE: 'https://n8n.larryvanscamper.com/webhook',
     ENDPOINTS: {
-        KEYWORD_RESEARCH: '/testkw',
+        KEYWORD_RESEARCH: '/cccc3333-dddd-4444-eeee-555566667777',
         SEO_GENERATOR: '/db0931a7-fb62-4a3a-a79f-915cd918edaf',
-        SCHEDULE: '/seo-schedule',
-        HISTORY: '/seo-history',
-        METRICS: '/seo-metrics'
+        SCHEDULE: '/bbbb2222-cccc-3333-dddd-444455556666',
+        HISTORY: '/aaaa1111-bbbb-2222-cccc-333344445555',
+        METRICS: '/c0ffee11-2222-3333-4444-555566667777'
     },
     AUTH: {
         username: 'admin',
@@ -391,11 +391,11 @@ async function fetchMetrics() {
     } catch (error) {
         console.error('Metrics API Error:', error);
         showNotification('Error al cargar métricas', 'error');
-        return { 
-            totalArticles: 0, 
-            avgQuality: 0, 
-            avgDensity: 0, 
-            topKeyword: '' 
+        return {
+            totalArticles: 0,
+            avgQuality: 0,
+            avgDensity: 0,
+            topKeyword: ''
         };
     }
 }
@@ -408,18 +408,18 @@ function updateMetrics(metrics) {
     const totalArticles = metrics.totalArticles || 0;
     const avgQuality = metrics.avgQuality || 0;
     const avgDensity = metrics.avgDensity || 0;
-    
+
     animateValue(elements.metricArticles, parseInt(elements.metricArticles.textContent) || 0, totalArticles, 1000);
     animateValue(elements.metricQuality, parseInt(elements.metricQuality.textContent) || 0, avgQuality, 1000);
-    
+
     const uniqueKeywords = new Set(state.history.map(h => h.keyword)).size;
     animateValue(elements.metricKeywords, parseInt(elements.metricKeywords.textContent) || 0, uniqueKeywords, 1000);
-    
+
     const estimatedWords = totalArticles * 1500;
     elements.metricWords.textContent = formatNumber(estimatedWords);
-    
+
     elements.qualityBar.style.width = `${Math.min(avgQuality, 100)}%`;
-    
+
     state.metrics = {
         totalArticles,
         avgQuality,
@@ -454,7 +454,7 @@ function animateValue(element, start, end, duration) {
 
 function updateHistory(history) {
     state.history = history || [];
-    
+
     if (!history || history.length === 0) {
         elements.historyList.innerHTML = `
             <tr>
@@ -476,19 +476,19 @@ function updateHistory(history) {
             draft: 'bg-slate-100 text-slate-600 border-slate-200',
             error: 'bg-rose-100 text-rose-700 border-rose-200'
         };
-        
+
         const statusLabels = {
             published: 'Publicado',
             processing: 'Procesando',
             draft: 'Borrador',
             error: 'Error'
         };
-        
-        const qualityColor = item.quality >= 80 ? 'text-emerald-600' : 
-                            item.quality >= 60 ? 'text-yellow-600' : 'text-rose-600';
-        const qualityBarColor = item.quality >= 80 ? 'bg-emerald-500' : 
-                               item.quality >= 60 ? 'bg-yellow-500' : 'bg-rose-500';
-        
+
+        const qualityColor = item.quality >= 80 ? 'text-emerald-600' :
+            item.quality >= 60 ? 'text-yellow-600' : 'text-rose-600';
+        const qualityBarColor = item.quality >= 80 ? 'bg-emerald-500' :
+            item.quality >= 60 ? 'bg-yellow-500' : 'bg-rose-500';
+
         return `
             <tr class="group hover:bg-slate-50 transition-colors">
                 <td class="px-6 py-4 text-slate-800 font-medium">
@@ -551,19 +551,19 @@ function showSection(section) {
 
 function startPollingForUpdates(keyword, startTime) {
     showNotification(`Monitoreando generación de "${keyword}"...`, 'info', 3000);
-    
+
     let attempts = 0;
-    
+
     const checkInterval = setInterval(async () => {
         attempts++;
-        
+
         try {
             const history = await fetchHistory();
-            const completed = history.find(h => 
-                h.keyword === keyword && 
+            const completed = history.find(h =>
+                h.keyword === keyword &&
                 new Date(h.date) > startTime
             );
-            
+
             if (completed) {
                 clearInterval(checkInterval);
                 showNotification(`¡"${keyword}" generado exitosamente!`, 'success');
@@ -657,7 +657,7 @@ async function handleGenerate(e) {
 async function initDashboard() {
     try {
         state.isLoading = true;
-        
+
         const metrics = await fetchMetrics();
         updateMetrics(metrics);
 
@@ -727,16 +727,16 @@ function init() {
 async function manualRefresh() {
     const btn = document.getElementById('refresh-dashboard-btn');
     const originalText = btn.innerHTML;
-    
+
     // Mostrar estado de carga
     btn.innerHTML = `
         <span class="material-symbols-outlined text-[20px] animate-spin">refresh</span>
         <span>Actualizando...</span>
     `;
     btn.disabled = true;
-    
+
     showNotification('Actualizando datos manualmente...', 'info', 2000);
-    
+
     try {
         await initDashboard();
         showNotification('Datos actualizados correctamente', 'success');
