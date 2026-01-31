@@ -17,15 +17,14 @@ const CONFIG = {
         METRICS: '/seo-metrics'
     },
 
-    // Auth credentials (hashed for basic security)
-    // Default: admin / seodashboard2026
+    // Auth credentials
     AUTH: {
         username: 'admin',
-        passwordHash: '7a5b8c2d9e4f1a3b6c8d0e2f4a6b8c0d' // Simple hash
+        password: 'seodashboard2026'
     },
 
-    // Google Sheets URL (for direct access)
-    SHEETS_URL: 'https://docs.google.com/spreadsheets/d/1cCu5_BB-xMCzXfzXpZeoEvW6zYgbQjaHFEWvQM4poPQ'
+    // Auto refresh interval (ms)
+    REFRESH_INTERVAL: 30000
 };
 
 // ========================================
@@ -41,7 +40,8 @@ const state = {
         quality: 0,
         words: 0
     },
-    history: []
+    history: [],
+    pendingSchedule: null
 };
 
 // ========================================
@@ -57,6 +57,7 @@ const elements = {
     loginForm: document.getElementById('login-form'),
     usernameInput: document.getElementById('username'),
     passwordInput: document.getElementById('password'),
+    togglePasswordBtn: document.getElementById('toggle-password'),
     rememberCheckbox: document.getElementById('remember'),
     loginError: document.getElementById('login-error'),
 
@@ -68,6 +69,7 @@ const elements = {
     metricArticles: document.getElementById('metric-articles'),
     metricKeywords: document.getElementById('metric-keywords'),
     metricQuality: document.getElementById('metric-quality'),
+    qualityBar: document.getElementById('quality-bar'),
     metricWords: document.getElementById('metric-words'),
 
     // Generator
@@ -80,25 +82,22 @@ const elements = {
     scheduleDateInput: document.getElementById('schedule-date'),
     submitText: document.getElementById('submit-text'),
     submitLoading: document.getElementById('submit-loading'),
-    statusMessage: document.getElementById('status-message'),
+
+    // Schedule Modal
+    scheduleModal: document.getElementById('schedule-modal'),
+    modalKeyword: document.getElementById('modal-keyword'),
+    modalScheduleDate: document.getElementById('modal-schedule-date'),
 
     // History
-    historyList: document.getElementById('history-list')
+    historyList: document.getElementById('history-list'),
+
+    // Notifications
+    notificationsContainer: document.getElementById('notifications-container')
 };
 
 // ========================================
 // Utility Functions
 // ========================================
-
-function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16);
-}
 
 function formatDate(dateStr) {
     if (!dateStr) return 'n/a';
@@ -114,6 +113,12 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'k';
+    return num.toString();
+}
+
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -121,14 +126,52 @@ function showScreen(screenId) {
     document.getElementById(screenId).classList.add('active');
 }
 
-function showStatus(message, type = 'loading') {
-    elements.statusMessage.classList.remove('hidden');
-    elements.statusMessage.querySelector('.status-content').className = `status-content glass ${type}`;
-    elements.statusMessage.querySelector('.status-content').innerHTML = message;
-}
+// ========================================
+// Notification System
+// ========================================
 
-function hideStatus() {
-    elements.statusMessage.classList.add('hidden');
+function showNotification(message, type = 'success', duration = 5000) {
+    const notification = document.createElement('div');
+    notification.className = `glass-toast pointer-events-auto rounded-lg p-4 flex items-start gap-4 transform transition-all duration-500 ease-out hover:scale-[1.02] cursor-default relative overflow-hidden group animate-slide-in`;
+    
+    const colors = {
+        success: 'bg-emerald-500',
+        error: 'bg-rose-500',
+        warning: 'bg-amber-500',
+        info: 'bg-blue-500'
+    };
+    
+    const icons = {
+        success: 'check',
+        error: 'warning',
+        warning: 'info',
+        info: 'info'
+    };
+    
+    notification.innerHTML = `
+        <div class="absolute left-0 top-0 bottom-0 w-1 ${colors[type]} rounded-l-lg"></div>
+        <div class="flex-shrink-0 mt-0.5">
+            <div class="h-6 w-6 rounded-full bg-${type === 'success' ? 'emerald' : type === 'error' ? 'rose' : type === 'warning' ? 'amber' : 'blue'}-100 flex items-center justify-center text-${type === 'success' ? 'emerald' : type === 'error' ? 'rose' : type === 'warning' ? 'amber' : 'blue'}-600">
+                <span class="material-symbols-outlined text-[16px] font-bold">${icons[type]}</span>
+            </div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-semibold text-slate-800 leading-5 capitalize">${type}</h4>
+            <p class="text-sm text-slate-600 mt-0.5 leading-5 font-medium">${message}</p>
+        </div>
+        <button class="flex-shrink-0 text-slate-400 hover:text-slate-600 transition-colors" onclick="this.parentElement.remove()">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+    `;
+    
+    elements.notificationsContainer.appendChild(notification);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 500);
+    }, duration);
 }
 
 // ========================================
@@ -153,8 +196,7 @@ function checkAuth() {
 }
 
 function login(username, password, remember = false) {
-    // Simple auth validation
-    if (username === CONFIG.AUTH.username && password === 'seodashboard2026') {
+    if (username === CONFIG.AUTH.username && password === CONFIG.AUTH.password) {
         state.isLoggedIn = true;
         state.user = username;
 
@@ -176,6 +218,87 @@ function logout() {
     state.user = null;
     localStorage.removeItem('seo_dashboard_auth');
     showScreen('login-screen');
+    showNotification('Sesión cerrada correctamente', 'info');
+}
+
+function togglePasswordVisibility() {
+    const type = elements.passwordInput.type === 'password' ? 'text' : 'password';
+    elements.passwordInput.type = type;
+    elements.togglePasswordBtn.innerHTML = `<span class="material-symbols-outlined text-[20px]">${type === 'password' ? 'visibility' : 'visibility_off'}</span>`;
+}
+
+// ========================================
+// Schedule Modal Functions
+// ========================================
+
+function openScheduleModal() {
+    const keyword = elements.keywordInput.value.trim();
+    if (!keyword) {
+        showNotification('Por favor, ingresa una keyword primero', 'warning');
+        elements.keywordInput.focus();
+        return;
+    }
+    
+    state.pendingSchedule = {
+        keyword: keyword,
+        language: elements.languageSelect.value,
+        location: elements.locationSelect.value
+    };
+    
+    elements.modalKeyword.textContent = keyword;
+    elements.modalKeyword.title = keyword;
+    
+    // Set minimum date to now
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    elements.modalScheduleDate.min = now.toISOString().slice(0, 16);
+    
+    elements.scheduleModal.classList.remove('hidden');
+}
+
+function closeScheduleModal() {
+    elements.scheduleModal.classList.add('hidden');
+    state.pendingSchedule = null;
+}
+
+async function confirmSchedule() {
+    const scheduledDate = elements.modalScheduleDate.value;
+    
+    if (!scheduledDate) {
+        showNotification('Por favor, selecciona fecha y hora', 'warning');
+        return;
+    }
+    
+    if (!state.pendingSchedule) {
+        showNotification('Error: No hay datos de programación', 'error');
+        return;
+    }
+    
+    closeScheduleModal();
+    setFormLoading(true);
+    
+    const result = await scheduleGeneration(
+        state.pendingSchedule.keyword,
+        state.pendingSchedule.language,
+        state.pendingSchedule.location,
+        scheduledDate
+    );
+    
+    if (result.success) {
+        const date = new Date(scheduledDate);
+        showNotification(
+            `¡Programado para el ${date.toLocaleDateString('es-ES')} a las ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}!`,
+            'success'
+        );
+        
+        elements.keywordInput.value = '';
+        elements.scheduleDateInput.value = '';
+        setTimeout(initDashboard, 2000);
+    } else {
+        showNotification(result.error || 'Error al programar', 'error');
+    }
+    
+    setFormLoading(false);
 }
 
 // ========================================
@@ -286,13 +409,13 @@ async function fetchMetrics() {
 
     try {
         const response = await fetch(url);
-        if (!response.ok) return { articles: 0, keywords: 0, quality: 0, words: '0' };
+        if (!response.ok) return { articles: 0, keywords: 0, quality: 0, words: 0 };
 
         const data = await response.json();
         return data;
     } catch (error) {
         console.error('Metrics API Error:', error);
-        return { articles: 0, keywords: 0, quality: 0, words: '0' };
+        return { articles: 0, keywords: 0, quality: 0, words: 0 };
     }
 }
 
@@ -301,29 +424,107 @@ async function fetchMetrics() {
 // ========================================
 
 function updateMetrics(metrics) {
-    elements.metricArticles.textContent = metrics.articles || 0;
-    elements.metricKeywords.textContent = metrics.keywords || 0;
-    elements.metricQuality.textContent = metrics.quality || 0;
-    elements.metricWords.textContent = metrics.words || '0';
+    // Animate numbers
+    animateValue(elements.metricArticles, parseInt(elements.metricArticles.textContent) || 0, metrics.articles || 0, 1000);
+    animateValue(elements.metricKeywords, parseInt(elements.metricKeywords.textContent) || 0, metrics.keywords || 0, 1000);
+    animateValue(elements.metricQuality, parseInt(elements.metricQuality.textContent) || 0, metrics.quality || 0, 1000);
+    
+    // Update quality bar
+    const qualityPercent = Math.min((metrics.quality || 0), 100);
+    elements.qualityBar.style.width = `${qualityPercent}%`;
+    
+    // Format words number
+    elements.metricWords.textContent = formatNumber(metrics.words || 0);
+}
+
+function animateValue(element, start, end, duration) {
+    if (start === end) return;
+    const range = end - start;
+    const minTimer = 50;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    stepTime = Math.max(stepTime, minTimer);
+    let startTime = new Date().getTime();
+    let endTime = startTime + duration;
+    let timer;
+
+    function run() {
+        let now = new Date().getTime();
+        let remaining = Math.max((endTime - now) / duration, 0);
+        let value = Math.round(end - (remaining * range));
+        element.textContent = value;
+        if (value == end) {
+            clearInterval(timer);
+        }
+    }
+
+    timer = setInterval(run, stepTime);
+    run();
 }
 
 function updateHistory(history) {
     if (!history || history.length === 0) {
-        elements.historyList.innerHTML = '<div class="history-loading">No hay historial disponible recientemente</div>';
+        elements.historyList.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                    <div class="flex flex-col items-center gap-2">
+                        <span class="material-symbols-outlined text-4xl text-slate-300">inbox</span>
+                        <p>No hay historial disponible</p>
+                    </div>
+                </td>
+            </tr>
+        `;
         return;
     }
 
-    elements.historyList.innerHTML = history.map(item => `
-        <div class="history-item">
-            <div class="history-item-info">
-                <span class="history-item-keyword">${item.keyword}</span>
-                <span class="history-item-meta">${formatDate(item.date)}</span>
-            </div>
-            <div class="history-item-status">
-                <span class="status-badge ${item.status}">${item.quality}/100</span>
-            </div>
-        </div>
-    `).join('');
+    elements.historyList.innerHTML = history.slice(0, 10).map(item => {
+        const statusColors = {
+            published: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+            processing: 'bg-blue-100 text-blue-700 border-blue-200',
+            draft: 'bg-slate-100 text-slate-600 border-slate-200',
+            error: 'bg-rose-100 text-rose-700 border-rose-200'
+        };
+        
+        const statusLabels = {
+            published: 'Publicado',
+            processing: 'Procesando',
+            draft: 'Borrador',
+            error: 'Error'
+        };
+        
+        const qualityColor = item.quality >= 80 ? 'text-emerald-600' : 
+                            item.quality >= 60 ? 'text-yellow-600' : 'text-rose-600';
+        const qualityBarColor = item.quality >= 80 ? 'bg-emerald-500' : 
+                               item.quality >= 60 ? 'bg-yellow-500' : 'bg-rose-500';
+        
+        return `
+            <tr class="group hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 text-slate-800 font-medium">
+                    ${item.keyword}
+                    <span class="block text-xs text-slate-500 font-normal mt-0.5">${item.language || 'es'} • ${item.location || 'ES'}</span>
+                </td>
+                <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium border ${statusColors[item.status] || statusColors.draft}">
+                        <span class="h-1.5 w-1.5 rounded-full ${item.status === 'processing' ? 'bg-blue-500 animate-pulse' : item.status === 'published' ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
+                        ${statusLabels[item.status] || item.status}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-slate-500">${formatDate(item.date)}</td>
+                <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <span class="${qualityColor} font-bold">${item.quality}</span>
+                        <div class="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="h-full ${qualityBarColor} rounded-full" style="width: ${item.quality}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <button class="text-slate-400 hover:text-primary transition" onclick="viewArticle('${item.slug || ''}')">
+                        <span class="material-symbols-outlined text-[20px]">${item.status === 'published' ? 'visibility' : 'edit_document'}</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function setFormLoading(loading) {
@@ -331,6 +532,24 @@ function setFormLoading(loading) {
     submitBtn.disabled = loading;
     elements.submitText.classList.toggle('hidden', loading);
     elements.submitLoading.classList.toggle('hidden', !loading);
+}
+
+function viewArticle(slug) {
+    if (slug) {
+        window.open(slug, '_blank');
+    } else {
+        showNotification('Artículo no disponible aún', 'info');
+    }
+}
+
+function refreshHistory() {
+    showNotification('Actualizando historial...', 'info', 2000);
+    initDashboard();
+}
+
+function showSection(section) {
+    // Placeholder for section navigation
+    showNotification(`Sección ${section} - En desarrollo`, 'info');
 }
 
 // ========================================
@@ -346,12 +565,15 @@ function handleLogin(e) {
 
     if (login(username, password, remember)) {
         elements.loginError.textContent = '';
-        elements.userDisplay.textContent = `👤 ${username}`;
+        elements.userDisplay.textContent = username;
+        document.getElementById('user-avatar').style.backgroundImage = `url('https://ui-avatars.com/api/?name=${username}&background=2563eb&color=fff')`;
         showScreen('dashboard-screen');
+        showNotification(`¡Bienvenido, ${username}!`, 'success');
         initDashboard();
     } else {
         elements.loginError.textContent = 'Usuario o contraseña incorrectos';
         elements.passwordInput.value = '';
+        showNotification('Credenciales incorrectas', 'error');
     }
 }
 
@@ -375,54 +597,29 @@ async function handleGenerate(e) {
     const execution = document.querySelector('input[name="execution"]:checked').value;
 
     if (!keyword) {
-        showStatus('⚠️ Por favor, ingresa una keyword', 'error');
+        showNotification('Por favor, ingresa una keyword', 'warning');
         return;
     }
 
     setFormLoading(true);
 
     if (execution === 'now') {
-        showStatus('⏳ Iniciando investigación de keywords...', 'loading');
+        showNotification('Iniciando investigación de keywords...', 'info', 3000);
 
         const result = await triggerKeywordResearch(keyword, language, location);
 
         if (result.success) {
-            showStatus(`
-                ✅ <strong>¡Proceso iniciado!</strong><br>
-                <small>La investigación y generación está en curso. <br>
-                Recibirás un email pronto.</small>
-            `, 'success');
-
+            showNotification('¡Proceso iniciado! Recibirás un email pronto.', 'success');
             elements.keywordInput.value = '';
             setTimeout(initDashboard, 5000);
         } else {
-            showStatus(`❌ Error: ${result.error}`, 'error');
+            showNotification(`Error: ${result.error}`, 'error');
         }
     } else {
-        const scheduledDate = elements.scheduleDateInput.value;
-        if (!scheduledDate) {
-            showStatus('⚠️ Por favor, selecciona fecha y hora', 'error');
-            setFormLoading(false);
-            return;
-        }
-
-        showStatus('⏳ Programando generación...', 'loading');
-        const result = await scheduleGeneration(keyword, language, location, scheduledDate);
-
-        if (result.success) {
-            const date = new Date(scheduledDate);
-            showStatus(`
-                ✅ <strong>¡Programado correctamente!</strong><br>
-                <small>Se ejecutará el ${date.toLocaleDateString('es-ES')} a las ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}. <br>
-                Asegúrate de que el flujo esté activo en n8n.</small>
-            `, 'success');
-
-            elements.keywordInput.value = '';
-            elements.scheduleDateInput.value = '';
-            setTimeout(initDashboard, 2000);
-        } else {
-            showStatus(`❌ Error: ${result.error}`, 'error');
-        }
+        // Open schedule modal instead
+        openScheduleModal();
+        setFormLoading(false);
+        return;
     }
 
     setFormLoading(false);
@@ -438,18 +635,31 @@ async function initDashboard() {
 
     const history = await fetchHistory();
     updateHistory(history);
+    
+    // Update DB status
+    const dbStatus = document.getElementById('db-status');
+    if (dbStatus) {
+        dbStatus.textContent = 'Actualizado ahora';
+        setTimeout(() => {
+            dbStatus.textContent = 'Actualizado hace un momento';
+        }, 60000);
+    }
 }
 
 function init() {
+    // Check auth
     if (checkAuth()) {
-        elements.userDisplay.textContent = `👤 ${state.user}`;
+        elements.userDisplay.textContent = state.user;
+        document.getElementById('user-avatar').style.backgroundImage = `url('https://ui-avatars.com/api/?name=${state.user}&background=2563eb&color=fff')`;
         showScreen('dashboard-screen');
         initDashboard();
     } else {
         showScreen('login-screen');
     }
 
+    // Event listeners
     elements.loginForm.addEventListener('submit', handleLogin);
+    elements.togglePasswordBtn.addEventListener('click', togglePasswordVisibility);
     elements.logoutBtn.addEventListener('click', logout);
     elements.generatorForm.addEventListener('submit', handleGenerate);
 
@@ -469,8 +679,16 @@ function init() {
         if (firstOption) locationSelect.value = firstOption.value;
     });
 
+    // Close modal on backdrop click
+    elements.scheduleModal.addEventListener('click', (e) => {
+        if (e.target === elements.scheduleModal) {
+            closeScheduleModal();
+        }
+    });
+
     // Auto refresh every 30s
-    setInterval(initDashboard, 30000);
+    setInterval(initDashboard, CONFIG.REFRESH_INTERVAL);
 }
 
+// Start app
 document.addEventListener('DOMContentLoaded', init);

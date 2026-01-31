@@ -7,169 +7,521 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563eb",
+                        "primary-glow": "#3b82f6",
+                        "background-light": "#f1f5f9",
+                        "surface-glass": "rgba(255, 255, 255, 0.7)",
+                        "border-glass": "rgba(0, 0, 0, 0.05)",
+                        "text-main": "#1e293b",
+                        "text-muted": "#64748b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'glow-gradient': 'radial-gradient(circle at 50% -20%, rgba(37, 99, 235, 0.1), rgba(241, 245, 249, 0))',
+                    }
+                },
+            },
+        }
+    </script>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <!-- Login Screen -->
+<body class="bg-background-light text-text-main font-display selection:bg-primary selection:text-white overflow-hidden">
+    
+    <!-- ========================================
+         LOGIN SCREEN (Capa: secure_login_access_1)
+         ======================================== -->
     <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <div class="login-card glass">
-                <div class="logo">
-                    <span class="logo-icon">🚀</span>
-                    <h1>SEO Dashboard</h1>
+        <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+            <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-glob-blue rounded-full blur-3xl"></div>
+            <div class="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-glob-royal rounded-full blur-3xl"></div>
+        </div>
+        
+        <div class="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 min-h-screen">
+            <div class="w-full max-w-[440px] glass-panel rounded-2xl p-8 sm:p-10 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-40"></div>
+                <div class="flex flex-col items-center mb-8 text-center">
+                    <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 text-blue-600 border border-blue-100 shadow-[0_4px_20px_-4px_rgba(37,99,235,0.2)]">
+                        <span class="material-symbols-outlined text-[28px]">analytics</span>
+                    </div>
+                    <h1 class="text-slate-900 text-2xl font-bold tracking-tight mb-1">SEO Dashboard</h1>
+                    <p class="text-slate-500 text-sm">Content Generation System</p>
                 </div>
-                <p class="subtitle">Content Generation System</p>
                 
-                <form id="login-form">
-                    <div class="input-group">
-                        <label for="username">Usuario</label>
-                        <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+                <form id="login-form" class="flex flex-col gap-5">
+                    <div class="space-y-2">
+                        <label class="text-slate-700 text-sm font-medium ml-1">Usuario</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-slate-400 group-focus-within:text-blue-500 transition-colors duration-200">person</span>
+                            </div>
+                            <input type="text" id="username" placeholder="admin" 
+                                class="glass-input w-full rounded-lg py-3 pl-10 pr-4 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm">
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" placeholder="••••••••" required>
+                    
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center ml-1">
+                            <label class="text-slate-700 text-sm font-medium">Contraseña</label>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-slate-400 group-focus-within:text-blue-500 transition-colors duration-200">lock</span>
+                            </div>
+                            <input type="password" id="password" placeholder="••••••••" 
+                                class="glass-input w-full rounded-lg py-3 pl-10 pr-10 placeholder-slate-400 focus:outline-none focus:ring-0 text-sm">
+                            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="remember">
-                        <label for="remember">Recordarme</label>
+                    
+                    <div class="flex items-center mt-1">
+                        <label class="inline-flex items-center cursor-pointer group">
+                            <input type="checkbox" id="remember" class="form-checkbox rounded bg-white border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 focus:ring-offset-white w-4 h-4 transition duration-150 ease-in-out">
+                            <span class="ml-2 text-sm text-slate-500 group-hover:text-slate-600">Recordarme</span>
+                        </label>
                     </div>
-                    <button type="submit" class="btn-primary">
-                        <span>Iniciar Sesión</span>
-                        <span class="btn-icon">→</span>
+                    
+                    <button type="submit" class="w-full relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-semibold py-3.5 px-4 rounded-lg transition-all duration-300 shadow-lg shadow-blue-900/10 mt-2">
+                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
+                        <span class="relative flex items-center justify-center gap-2">
+                            Iniciar Sesión
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </span>
                     </button>
                 </form>
-                <p id="login-error" class="error-message"></p>
+                
+                <p id="login-error" class="error-message text-center mt-4"></p>
+                
+                <div class="mt-8 text-center">
+                    <p class="text-xs text-slate-400">© 2024 SEO Platform. Todos los derechos reservados.</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Dashboard Screen -->
+    <!-- ========================================
+         DASHBOARD SCREEN (Capa: seo_performance_dashboard)
+         ======================================== -->
     <div id="dashboard-screen" class="screen">
-        <nav class="navbar glass">
-            <div class="nav-brand">
-                <span class="logo-icon">🚀</span>
-                <span>SEO Dashboard</span>
-            </div>
-            <div class="nav-actions">
-                <span id="user-display" class="user-badge">👤 Usuario</span>
-                <button id="logout-btn" class="btn-ghost">Cerrar Sesión</button>
-            </div>
-        </nav>
-
-        <main class="dashboard-content">
-            <!-- Metrics Section -->
-            <section class="metrics-section">
-                <h2 class="section-title">📊 Métricas</h2>
-                <div class="metrics-grid">
-                    <div class="metric-card glass">
-                        <span class="metric-value" id="metric-articles">--</span>
-                        <span class="metric-label">Artículos</span>
-                    </div>
-                    <div class="metric-card glass">
-                        <span class="metric-value" id="metric-keywords">--</span>
-                        <span class="metric-label">Keywords</span>
-                    </div>
-                    <div class="metric-card glass">
-                        <span class="metric-value" id="metric-quality">--</span>
-                        <span class="metric-label">Quality Avg</span>
-                    </div>
-                    <div class="metric-card glass">
-                        <span class="metric-value" id="metric-words">--</span>
-                        <span class="metric-label">Palabras</span>
-                    </div>
+        <div class="relative flex h-screen w-full bg-background-light bg-glow-gradient">
+            
+            <!-- Sidebar -->
+            <aside class="hidden w-20 flex-col items-center border-r border-slate-200 bg-white/50 backdrop-blur-xl py-8 lg:flex z-20">
+                <div class="mb-10 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-blue-500/20">
+                    <span class="material-symbols-outlined text-white" style="font-size: 28px;">auto_awesome</span>
                 </div>
-            </section>
+                <nav class="flex flex-1 flex-col gap-6">
+                    <button class="group relative flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all hover:bg-primary hover:text-white" onclick="showSection('dashboard')">
+                        <span class="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary"></span>
+                        <span class="material-symbols-outlined" style="font-size: 24px;">dashboard</span>
+                        <span class="absolute left-16 z-50 rounded-md bg-slate-800 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-xl">Dashboard</span>
+                    </button>
+                    <button class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-slate-100 hover:text-primary" onclick="showSection('projects')">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">folder_open</span>
+                        <span class="absolute left-16 z-50 rounded-md bg-slate-800 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-xl">Proyectos</span>
+                    </button>
+                    <button class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-slate-100 hover:text-primary" onclick="showSection('analytics')">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">bar_chart</span>
+                        <span class="absolute left-16 z-50 rounded-md bg-slate-800 px-2 py-1 text-xs font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 shadow-xl">Analytics</span>
+                    </button>
+                </nav>
+                <div class="mt-auto flex flex-col gap-6">
+                    <button class="group relative flex h-12 w-12 items-center justify-center rounded-xl text-slate-500 transition-all hover:bg-slate-100 hover:text-primary">
+                        <span class="material-symbols-outlined" style="font-size: 24px;">settings</span>
+                    </button>
+                    <div class="h-10 w-10 rounded-full bg-cover bg-center ring-2 ring-slate-200" id="user-avatar" style="background-image: url('https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff')"></div>
+                </div>
+            </aside>
 
-            <!-- Generator Section -->
-            <section class="generator-section">
-                <h2 class="section-title">✨ Nueva Generación</h2>
-                <div class="generator-card glass">
-                    <form id="generator-form">
-                        <div class="form-row">
-                            <div class="input-group flex-2">
-                                <label for="keyword">Keyword Principal</label>
-                                <input type="text" id="keyword" placeholder="ej: marketing digital, seo local..." required>
-                            </div>
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto px-6 py-8 md:px-10 lg:px-12">
+                <div class="mx-auto max-w-7xl">
+                    
+                    <!-- Header -->
+                    <header class="mb-10 flex flex-wrap items-end justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-semibold text-slate-800 tracking-tight">SEO Dashboard</h1>
+                            <p class="mt-2 text-sm text-slate-500">Bienvenido de nuevo, <span id="user-display">Usuario</span>. <span class="text-primary font-medium">Pro Plan</span>.</p>
                         </div>
-                        
-                        <div class="form-row">
-                            <div class="input-group">
-                                <label for="language">Idioma</label>
-                                <select id="language">
-                                    <option value="es">🇪🇸 Español</option>
-                                    <option value="en">🇺🇸 English</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label for="location">Ubicación</label>
-                                <select id="location">
-                                    <optgroup label="Español">
-                                        <option value="ES">España</option>
-                                        <option value="MX">México</option>
-                                        <option value="AR">Argentina</option>
-                                        <option value="CO">Colombia</option>
-                                    </optgroup>
-                                    <optgroup label="English">
-                                        <option value="US">United States</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="AU">Australia</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="radio-group">
-                                <label class="radio-label">
-                                    <input type="radio" name="execution" value="now" checked>
-                                    <span class="radio-custom"></span>
-                                    <span>Ejecutar ahora</span>
-                                </label>
-                                <label class="radio-label">
-                                    <input type="radio" name="execution" value="schedule">
-                                    <span class="radio-custom"></span>
-                                    <span>Programar</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div id="schedule-options" class="schedule-options hidden">
-                            <div class="input-group">
-                                <label for="schedule-date">Fecha y Hora</label>
-                                <input type="datetime-local" id="schedule-date">
-                            </div>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary btn-large">
-                                <span id="submit-text">🚀 Generar Contenido SEO</span>
-                                <span id="submit-loading" class="hidden">⏳ Procesando...</span>
+                        <div class="flex items-center gap-3">
+                            <button id="logout-btn" class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 shadow-sm">
+                                <span class="material-symbols-outlined text-[20px]">logout</span>
+                                <span>Cerrar Sesión</span>
                             </button>
                         </div>
-                    </form>
-                </div>
+                    </header>
 
-                <!-- Status Message -->
-                <div id="status-message" class="status-message hidden">
-                    <div class="status-content glass"></div>
-                </div>
-            </section>
+                    <!-- KPIs Section -->
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                        <!-- Articles Generated -->
+                        <div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+                            <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-500/10 blur-xl transition-all group-hover:bg-blue-500/20"></div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Artículos Generados</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-slate-800 tabular-nums" id="metric-articles">--</h3>
+                                </div>
+                                <span class="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 border border-emerald-200">
+                                    <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                    12%
+                                </span>
+                            </div>
+                            <div class="mt-4 h-10 w-full">
+                                <svg class="h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+                                    <path class="sparkline-path" d="M0 30 Q 10 25, 20 28 T 40 20 T 60 25 T 80 10 L 100 5" fill="none" stroke="#2563eb" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                    <defs>
+                                        <linearGradient id="gradient-kpi1" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"></stop>
+                                            <stop offset="100%" stop-color="#2563eb" stop-opacity="0"></stop>
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M0 30 Q 10 25, 20 28 T 40 20 T 60 25 T 80 10 L 100 5 V 40 H 0 Z" fill="url(#gradient-kpi1)" opacity="0.4"></path>
+                                </svg>
+                            </div>
+                        </div>
 
-            <!-- History Section -->
-            <section class="history-section">
-                <h2 class="section-title">📜 Historial Reciente</h2>
-                <div class="history-card glass">
-                    <div id="history-list" class="history-list">
-                        <div class="history-loading">Cargando historial...</div>
+                        <!-- Keywords Target -->
+                        <div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+                            <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-indigo-500/10 blur-xl transition-all group-hover:bg-indigo-500/20"></div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Keywords Target</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-slate-800 tabular-nums" id="metric-keywords">--</h3>
+                                </div>
+                                <span class="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 border border-slate-200">
+                                    <span class="material-symbols-outlined text-[14px]">remove</span>
+                                    0%
+                                </span>
+                            </div>
+                            <div class="mt-4 h-10 w-full">
+                                <svg class="h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 40">
+                                    <path class="sparkline-path" d="M0 20 L 20 20 L 40 22 L 60 18 L 80 20 L 100 20" fill="none" stroke="#94a3b8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Avg Quality Score -->
+                        <div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+                            <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-purple-500/10 blur-xl transition-all group-hover:bg-purple-500/20"></div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Quality Score Promedio</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-slate-800 tabular-nums"><span id="metric-quality">--</span><span class="text-lg text-slate-400 font-normal">/100</span></h3>
+                                </div>
+                                <span class="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 border border-emerald-200">
+                                    <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                    2pts
+                                </span>
+                            </div>
+                            <div class="mt-4 flex items-center gap-2">
+                                <div class="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                                    <div id="quality-bar" class="h-full w-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Words -->
+                        <div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+                            <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-orange-500/10 blur-xl transition-all group-hover:bg-orange-500/20"></div>
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-slate-500">Total Palabras</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-slate-800 tabular-nums" id="metric-words">--</h3>
+                                </div>
+                                <span class="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 border border-emerald-200">
+                                    <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                                    15%
+                                </span>
+                            </div>
+                            <div class="mt-4 h-10 w-full flex items-end gap-1">
+                                <div class="w-1/6 h-[40%] bg-slate-300 rounded-sm"></div>
+                                <div class="w-1/6 h-[60%] bg-slate-300 rounded-sm"></div>
+                                <div class="w-1/6 h-[50%] bg-slate-300 rounded-sm"></div>
+                                <div class="w-1/6 h-[80%] bg-slate-300 rounded-sm"></div>
+                                <div class="w-1/6 h-[70%] bg-slate-300 rounded-sm"></div>
+                                <div class="w-1/6 h-[100%] bg-primary rounded-sm shadow-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Generator Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <div class="lg:col-span-2 flex flex-col gap-6">
+                            <section class="glass-panel rounded-xl p-1 bg-white">
+                                <div class="p-6 border-b border-slate-100">
+                                    <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">auto_fix_high</span>
+                                        Generador de Contenido
+                                    </h2>
+                                    <p class="text-sm text-slate-500 mt-1">Configura los parámetros para generar artículos SEO optimizados.</p>
+                                </div>
+                                <div class="p-6">
+                                    <form id="generator-form" class="flex flex-col gap-5">
+                                        <div class="flex flex-col gap-2">
+                                            <label class="text-sm font-medium text-slate-700">Keyword Principal</label>
+                                            <div class="relative group">
+                                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                                                </div>
+                                                <input type="text" id="keyword" 
+                                                    class="glass-input w-full rounded-lg py-3 pl-11 pr-4 text-sm placeholder-slate-400" 
+                                                    placeholder="Ej: marketing digital, seo local...">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-slate-700">Idioma</label>
+                                                <div class="relative">
+                                                    <select id="language" class="glass-input w-full appearance-none rounded-lg py-3 pl-4 pr-10 text-sm">
+                                                        <option value="es">🇪🇸 Español</option>
+                                                        <option value="en">🇺🇸 English</option>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                                        <span class="material-symbols-outlined">expand_more</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col gap-2">
+                                                <label class="text-sm font-medium text-slate-700">Ubicación</label>
+                                                <div class="relative">
+                                                    <select id="location" class="glass-input w-full appearance-none rounded-lg py-3 pl-4 pr-10 text-sm">
+                                                        <optgroup label="Español">
+                                                            <option value="ES">España</option>
+                                                            <option value="MX">México</option>
+                                                            <option value="AR">Argentina</option>
+                                                            <option value="CO">Colombia</option>
+                                                        </optgroup>
+                                                        <optgroup label="English">
+                                                            <option value="US">United States</option>
+                                                            <option value="UK">United Kingdom</option>
+                                                            <option value="CA">Canada</option>
+                                                            <option value="AU">Australia</option>
+                                                        </optgroup>
+                                                    </select>
+                                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                                        <span class="material-symbols-outlined">expand_more</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Execution Options -->
+                                        <div class="flex flex-col sm:flex-row gap-4 mt-4 pt-4 border-t border-slate-100">
+                                            <label class="radio-label flex-1 cursor-pointer">
+                                                <input type="radio" name="execution" value="now" checked class="hidden">
+                                                <span class="radio-custom"></span>
+                                                <span class="flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                                    Ejecutar Ahora
+                                                </span>
+                                            </label>
+                                            <label class="radio-label flex-1 cursor-pointer">
+                                                <input type="radio" name="execution" value="schedule" class="hidden">
+                                                <span class="radio-custom"></span>
+                                                <span class="flex items-center gap-2">
+                                                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                                    Programar
+                                                </span>
+                                            </label>
+                                        </div>
+
+                                        <!-- Schedule Options (Hidden by default) -->
+                                        <div id="schedule-options" class="hidden bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                            <label class="text-sm font-medium text-slate-700 mb-2 block">Fecha y Hora</label>
+                                            <input type="datetime-local" id="schedule-date" 
+                                                class="glass-input w-full rounded-lg py-3 px-4 text-sm">
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 py-3 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                                                <span id="submit-text" class="flex items-center gap-2">
+                                                    <span class="material-symbols-outlined">rocket_launch</span>
+                                                    Generar Contenido SEO
+                                                </span>
+                                                <span id="submit-loading" class="hidden flex items-center gap-2">
+                                                    <span class="material-symbols-outlined animate-spin">refresh</span>
+                                                    Procesando...
+                                                </span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- System Status Panel -->
+                        <div class="lg:col-span-1">
+                            <section class="glass-panel rounded-xl p-6 h-full flex flex-col bg-white">
+                                <h3 class="text-lg font-medium text-slate-800 mb-4">Estado del Sistema</h3>
+                                <div class="flex flex-col gap-4">
+                                    <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                                        <div class="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                            <span class="material-symbols-outlined">check_circle</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-slate-700">Conexión API</span>
+                                            <span class="text-xs text-emerald-600">Operativo</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                                        <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <span class="material-symbols-outlined">database</span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-slate-700">Base de Datos</span>
+                                            <span class="text-xs text-slate-500" id="db-status">Actualizado hace 2h</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-auto pt-6">
+                                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+                                        <p class="text-xs text-primary font-bold uppercase tracking-wider mb-2">Pro Tip</p>
+                                        <p class="text-sm text-slate-600">Usa keywords de cola larga para aumentar la probabilidad de ranking en un 40%.</p>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    <!-- History Section -->
+                    <section class="glass-panel rounded-xl overflow-hidden bg-white shadow-sm">
+                        <div class="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
+                            <h2 class="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">history</span>
+                                Generaciones Recientes
+                            </h2>
+                            <div class="flex items-center gap-2">
+                                <button class="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-lg transition" onclick="refreshHistory()">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-100 bg-slate-50/50 text-xs uppercase tracking-wider text-slate-500">
+                                        <th class="px-6 py-4 font-medium">Keyword</th>
+                                        <th class="px-6 py-4 font-medium">Estado</th>
+                                        <th class="px-6 py-4 font-medium">Fecha</th>
+                                        <th class="px-6 py-4 font-medium text-right">Quality Score</th>
+                                        <th class="px-6 py-4 font-medium text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-list" class="divide-y divide-slate-100 text-sm">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-8 text-center text-slate-500">
+                                            <div class="flex flex-col items-center gap-2">
+                                                <span class="material-symbols-outlined text-4xl text-slate-300">hourglass_empty</span>
+                                                <p>Cargando historial...</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="fixed bottom-0 left-0 right-0 z-50 flex h-16 w-full items-center justify-around border-t border-slate-200 bg-white/90 backdrop-blur-lg lg:hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button class="flex flex-col items-center justify-center gap-1 text-primary" onclick="showSection('dashboard')">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="text-[10px] font-medium">Inicio</span>
+            </button>
+            <button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+                <span class="material-symbols-outlined">folder_open</span>
+                <span class="text-[10px] font-medium">Proyectos</span>
+            </button>
+            <button class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-blue-500/30 -translate-y-4 border-4 border-slate-50" onclick="document.getElementById('keyword').focus()">
+                <span class="material-symbols-outlined">add</span>
+            </button>
+            <button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+                <span class="material-symbols-outlined">bar_chart</span>
+                <span class="text-[10px] font-medium">Stats</span>
+            </button>
+            <button class="flex flex-col items-center justify-center gap-1 text-slate-400">
+                <div class="h-6 w-6 rounded-full bg-cover bg-center ring-2 ring-slate-200" style="background-image: url('https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff')"></div>
+                <span class="text-[10px] font-medium">Perfil</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================
+         SCHEDULING MODAL (Capa: content_scheduling_form)
+         ======================================== -->
+    <div id="schedule-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/10 backdrop-blur-sm hidden">
+        <div class="glass-panel w-full max-w-[480px] rounded-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 pb-2">
+                <div>
+                    <h2 class="text-xl font-bold text-[#111318] tracking-tight">Programar Publicación</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Establece fecha y hora para publicar el contenido.</p>
+                </div>
+                <button onclick="closeScheduleModal()" class="text-slate-400 hover:text-slate-700 transition-colors p-1 rounded-md hover:bg-black/5">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 pt-4 flex flex-col gap-6">
+                <!-- Keyword Summary Card -->
+                <div class="bg-white/40 border border-white/50 rounded-xl p-4 flex items-start gap-4 shadow-sm ring-1 ring-black/5">
+                    <div class="size-10 shrink-0 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-semibold text-primary uppercase tracking-wider mb-0.5">Keyword Objetivo</p>
+                        <p class="text-[#111318] font-medium text-base truncate" id="modal-keyword" title="">-</p>
+                        <div class="flex items-center gap-3 mt-1.5">
+                            <span class="text-xs text-slate-600 bg-white/60 px-1.5 py-0.5 rounded border border-white/40">Vol: 12k</span>
+                            <span class="text-xs text-slate-600 bg-white/60 px-1.5 py-0.5 rounded border border-white/40">KD: 45%</span>
+                        </div>
                     </div>
                 </div>
-            </section>
-        </main>
+                
+                <!-- Date & Time Grid -->
+                <div class="flex flex-col gap-5">
+                    <!-- Simple DateTime Input -->
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm font-semibold text-[#111318]">Fecha y Hora</label>
+                        <input type="datetime-local" id="modal-schedule-date" 
+                            class="glass-input w-full rounded-lg px-4 py-3 text-sm font-medium text-[#111318] focus:ring-0 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Actions -->
+            <div class="p-6 pt-2 flex items-center justify-end gap-3 border-t border-white/40 mt-2">
+                <button onclick="closeScheduleModal()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-black/5 transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="confirmSchedule()" class="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#135bec] to-[#3b82f6] shadow-[0_4px_14px_rgba(19,91,236,0.3)] hover:shadow-[0_6px_20px_rgba(19,91,236,0.4)] hover:-translate-y-0.5 transition-all active:translate-y-0">
+                    Programar
+                </button>
+            </div>
+        </div>
+    </div>
 
-        <footer class="footer">
-            <p>SEO Content Dashboard v1.0 • Powered by n8n + DeepSeek AI</p>
-        </footer>
+    <!-- ========================================
+         NOTIFICATIONS CONTAINER (Capa: system_status_notifications)
+         ======================================== -->
+    <div id="notifications-container" class="fixed top-20 right-6 z-50 flex flex-col gap-3 w-96 pointer-events-none">
+        <!-- Las notificaciones se agregarán dinámicamente aquí -->
     </div>
 
     <script src="app.js"></script>

@@ -1,41 +1,50 @@
 /* ========================================
    SEO Dashboard - Styles
+   Integración de 4 capas:
+   1. secure_login_access_1
+   2. seo_performance_dashboard  
+   3. content_scheduling_form
+   4. system_status_notifications
+   ======================================== */
+
+/* ========================================
+   CSS Variables & Theme
    ======================================== */
 
 :root {
-    /* Colors */
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --primary-light: #818cf8;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #3b82f6;
     --success: #10b981;
     --warning: #f59e0b;
     --error: #ef4444;
+    --info: #3b82f6;
     
-    /* Dark Theme */
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --bg-light: #f1f5f9;
+    --bg-white: #ffffff;
+    --text-main: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
     
-    /* Glass Effect */
-    --glass-bg: rgba(30, 41, 59, 0.7);
-    --glass-border: rgba(148, 163, 184, 0.1);
+    --border-light: #e2e8f0;
+    --border-glass: rgba(255, 255, 255, 0.6);
     
-    /* Spacing */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
     
-    /* Transitions */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 40px -10px rgba(37, 99, 235, 0.15);
 }
 
 /* ========================================
-   Reset & Base
+   Reset & Base Styles
    ======================================== */
 
 * {
@@ -44,39 +53,18 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-main);
     min-height: 100vh;
-    line-height: 1.6;
-}
-
-/* Background Pattern */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-}
-
-/* ========================================
-   Glass Effect
-   ======================================== */
-
-.glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ========================================
@@ -86,7 +74,7 @@ body::before {
 .screen {
     display: none;
     opacity: 0;
-    transition: opacity var(--transition-normal);
+    transition: opacity 0.4s ease;
 }
 
 .screen.active {
@@ -95,322 +83,154 @@ body::before {
 }
 
 /* ========================================
-   Login Screen
+   Glassmorphism Effects
    ======================================== */
 
-.login-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-.login-card {
-    width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    text-align: center;
+.glass-input {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    transition: all 0.2s ease;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 8px;
-}
-
-.logo-icon {
-    font-size: 2rem;
-}
-
-.logo h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-light), var(--primary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.subtitle {
-    color: var(--text-secondary);
-    margin-bottom: 32px;
-}
-
-/* ========================================
-   Forms
-   ======================================== */
-
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
-
-.input-group input,
-.input-group select {
-    width: 100%;
-    padding: 12px 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 1rem;
-    font-family: inherit;
-    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.input-group input:focus,
-.input-group select:focus {
+.glass-input:focus {
+    background: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 1px #2563eb;
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-.input-group input::placeholder {
-    color: var(--text-muted);
+.glass-input::placeholder {
+    color: #94a3b8;
 }
 
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 24px;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.checkbox-group input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: var(--primary);
+.glass-toast {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
 }
 
 /* ========================================
-   Buttons
+   Login Screen Styles (Capa 1)
    ======================================== */
 
-.btn-primary {
-    width: 100%;
-    padding: 14px 24px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border: none;
-    border-radius: var(--radius-md);
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    font-family: inherit;
+.bg-glob-blue {
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(248, 250, 252, 0) 70%);
+}
+
+.bg-glob-royal {
+    background: radial-gradient(circle, rgba(79, 70, 229, 0.12) 0%, rgba(248, 250, 252, 0) 70%);
+}
+
+.form-checkbox {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 0.25rem;
+    background-color: white;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    transition: all 0.2s;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+.form-checkbox:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
 }
 
-.btn-primary:active {
-    transform: translateY(0);
+.form-checkbox:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-.btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
+/* ========================================
+   Dashboard Layout
+   ======================================== */
+
+.bg-glow-gradient {
+    background: radial-gradient(circle at 50% -20%, rgba(37, 99, 235, 0.08), rgba(241, 245, 249, 0));
 }
 
-.btn-large {
-    padding: 16px 32px;
-    font-size: 1.1rem;
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
 }
 
-.btn-ghost {
+::-webkit-scrollbar-track {
     background: transparent;
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    padding: 8px 16px;
-    font-size: 0.875rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all var(--transition-fast);
 }
 
-.btn-ghost:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 /* ========================================
-   Error Message
+   KPI Cards Styles
    ======================================== */
 
-.error-message {
-    color: var(--error);
-    font-size: 0.875rem;
-    margin-top: 16px;
-    min-height: 20px;
+.sparkline-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: dash 2s ease-out forwards;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+    }
 }
 
 /* ========================================
-   Navbar
+   Form Elements
    ======================================== */
-
-.navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    margin: 16px;
-    margin-bottom: 0;
-}
-
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.user-badge {
-    background: var(--bg-tertiary);
-    padding: 6px 12px;
-    border-radius: var(--radius-sm);
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-/* ========================================
-   Dashboard Content
-   ======================================== */
-
-.dashboard-content {
-    padding: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--text-primary);
-}
-
-/* ========================================
-   Metrics Section
-   ======================================== */
-
-.metrics-section {
-    margin-bottom: 32px;
-}
-
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 16px;
-}
-
-.metric-card {
-    padding: 24px;
-    text-align: center;
-    transition: transform var(--transition-fast);
-}
-
-.metric-card:hover {
-    transform: translateY(-4px);
-}
-
-.metric-value {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-light);
-    margin-bottom: 4px;
-}
-
-.metric-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-/* ========================================
-   Generator Section
-   ======================================== */
-
-.generator-section {
-    margin-bottom: 32px;
-}
-
-.generator-card {
-    padding: 32px;
-}
-
-.form-row {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.form-row .input-group {
-    flex: 1;
-    margin-bottom: 0;
-}
-
-.flex-2 {
-    flex: 2 !important;
-}
-
-/* Radio Buttons */
-.radio-group {
-    display: flex;
-    gap: 24px;
-}
 
 .radio-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
     cursor: pointer;
-    color: var(--text-secondary);
-    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
 }
 
-.radio-label input[type="radio"] {
-    display: none;
+.radio-label:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
 }
 
 .radio-custom {
     width: 20px;
     height: 20px;
-    border: 2px solid var(--text-muted);
+    border: 2px solid #cbd5e1;
     border-radius: 50%;
     position: relative;
-    transition: all var(--transition-fast);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .radio-label input[type="radio"]:checked + .radio-custom {
-    border-color: var(--primary);
+    border-color: #2563eb;
+    background: #2563eb;
 }
 
 .radio-label input[type="radio"]:checked + .radio-custom::after {
@@ -419,177 +239,45 @@ body::before {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
-    background: var(--primary);
+    width: 8px;
+    height: 8px;
+    background: white;
     border-radius: 50%;
 }
 
-/* Schedule Options */
-.schedule-options {
-    margin-bottom: 20px;
-    padding: 16px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* Form Actions */
-.form-actions {
-    margin-top: 24px;
-}
-
-/* Status Message */
-.status-message {
-    margin-top: 20px;
-}
-
-.status-content {
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.status-content.success {
-    border-left: 4px solid var(--success);
-}
-
-.status-content.error {
-    border-left: 4px solid var(--error);
-}
-
-.status-content.loading {
-    border-left: 4px solid var(--warning);
+.radio-label:has(input[type="radio"]:checked) {
+    border-color: #2563eb;
+    background: #eff6ff;
 }
 
 /* ========================================
-   History Section
+   Table Styles
    ======================================== */
 
-.history-section {
-    margin-bottom: 32px;
+table {
+    border-collapse: collapse;
 }
 
-.history-card {
-    padding: 24px;
-    max-height: 400px;
-    overflow-y: auto;
+th, td {
+    padding: 1rem 1.5rem;
 }
 
-.history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+tbody tr {
+    transition: background-color 0.15s ease;
 }
 
-.history-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-    transition: transform var(--transition-fast);
+tbody tr:hover {
+    background-color: #f8fafc;
 }
 
-.history-item:hover {
-    transform: translateX(4px);
-}
+/* ========================================
+   Error Message
+   ======================================== */
 
-.history-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.history-item-keyword {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.history-item-meta {
+.error-message {
+    color: #ef4444;
     font-size: 0.875rem;
-    color: var(--text-muted);
-}
-
-.history-item-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.status-badge {
-    padding: 4px 10px;
-    border-radius: var(--radius-sm);
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.status-badge.success {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--success);
-}
-
-.status-badge.error {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--error);
-}
-
-.status-badge.pending {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--warning);
-}
-
-.history-loading {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 32px;
-}
-
-/* ========================================
-   Footer
-   ======================================== */
-
-.footer {
-    text-align: center;
-    padding: 24px;
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
-/* ========================================
-   Responsive
-   ======================================== */
-
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-    }
-    
-    .metrics-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .navbar {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-    }
-    
-    .nav-actions {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .history-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
+    min-height: 1.25rem;
 }
 
 /* ========================================
@@ -597,23 +285,183 @@ body::before {
    ======================================== */
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
 }
 
-.dashboard-content section {
-    animation: fadeIn 0.5s ease forwards;
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-.metrics-section { animation-delay: 0.1s; }
-.generator-section { animation-delay: 0.2s; }
-.history-section { animation-delay: 0.3s; }
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
 
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
 
-.history-loading {
-    animation: pulse 1.5s ease-in-out infinite;
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.5s ease forwards;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Staggered animations for sections */
+.dashboard-content section {
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+}
+
+.dashboard-content section:nth-child(1) { animation-delay: 0.1s; }
+.dashboard-content section:nth-child(2) { animation-delay: 0.2s; }
+.dashboard-content section:nth-child(3) { animation-delay: 0.3s; }
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.hidden {
+    display: none !important;
+}
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+@media (max-width: 1024px) {
+    .lg\:hidden {
+        display: none !important;
+    }
+    
+    .lg\:flex {
+        display: flex !important;
+    }
+    
+    .lg\:col-span-2,
+    .lg\:col-span-1 {
+        grid-column: span 3 / span 3;
+    }
+}
+
+@media (max-width: 768px) {
+    .md\:px-10 {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    
+    .sm\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .glass-panel {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .grid-cols-4 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    
+    .grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    
+    .md\:grid-cols-2 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    
+    .text-3xl {
+        font-size: 1.5rem;
+    }
+    
+    .p-6 {
+        padding: 1rem;
+    }
+    
+    .px-6 {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+/* Mobile navigation adjustments */
+@media (max-width: 1024px) {
+    main {
+        padding-bottom: 5rem;
+    }
+}
+
+/* ========================================
+   Focus States for Accessibility
+   ======================================== */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+
+@media print {
+    .screen:not(.active) {
+        display: none !important;
+    }
+    
+    .lg\:hidden,
+    .fixed {
+        display: none !important;
+    }
+    
+    .glass-panel {
+        background: white !important;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+    }
 }
