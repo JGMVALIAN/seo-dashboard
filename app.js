@@ -523,8 +523,32 @@ function updateHistory(history) {
 function setFormLoading(loading) {
     const submitBtn = elements.generatorForm.querySelector('button[type="submit"]');
     submitBtn.disabled = loading;
-    elements.submitText.classList.toggle('hidden', loading);
-    elements.submitLoading.classList.toggle('hidden', !loading);
+    
+    if (loading) {
+        // Mostrar estado de carga con animación
+        submitBtn.innerHTML = `
+            <span class="flex items-center gap-2">
+                <span class="material-symbols-outlined animate-spin">rocket_launch</span>
+                <span>Generando contenido...</span>
+                <span class="inline-flex items-center justify-center">
+                    <span class="animate-pulse">●</span>
+                    <span class="animate-pulse" style="animation-delay: 0.2s">●</span>
+                    <span class="animate-pulse" style="animation-delay: 0.4s">●</span>
+                </span>
+            </span>
+        `;
+        submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+    } else {
+        // Restaurar botón original
+        submitBtn.innerHTML = `
+            <span id="submit-text" class="flex items-center gap-2">
+                <span class="material-symbols-outlined">rocket_launch</span>
+                Generar Contenido SEO
+            </span>
+        `;
+        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+    
     state.isLoading = loading;
 }
 
